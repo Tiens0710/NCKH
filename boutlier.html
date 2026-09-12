@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đề cương chi tiết — Hệ thống tìm kiếm, định danh và truy vết quỹ đạo con người</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F2F3EF;
+    --surface: #FFFFFF;
+    --ink: #1B211D;
+    --ink-soft: #4A5049;
+    --accent: #2B5F52;
+    --accent-warm: #A8752E;
+    --line: #D7D8D1;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Serif', Georgia, serif;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  h1, h2, h3, .chapter-num, .toc-heading, .masthead-kicker, .layer-tag,
+  .layer-stack strong, .step-timeline strong, .step-dot, .print-btn { font-family: 'IBM Plex Sans', -apple-system, sans-serif; }
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.87em;
+    background: rgba(43,95,82,0.08);
+    color: var(--accent);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .masthead { border-bottom: 1px solid var(--line); padding: 56px 32px 44px; }
+  .masthead-inner { max-width: 760px; margin: 0 auto; }
+  .masthead-kicker { color: var(--accent); font-weight: 600; font-size: 14px; margin-bottom: 14px; }
+  .masthead h1 { font-size: clamp(26px, 3.6vw, 38px); font-weight: 600; line-height: 1.28; margin: 0 0 16px; max-width: 21ch; }
+  .masthead-sub { font-family: 'IBM Plex Serif', serif; font-size: 18px; color: var(--ink-soft); max-width: 62ch; margin: 0; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr 290px;
+    gap: 36px;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+    align-items: start;
+  }
+  .toc { position: sticky; top: 32px; }
+  .print-btn { display: block; width: 100%; font-size: 13px; color: var(--ink-soft); background: transparent; border: 1px solid var(--line); padding: 7px 12px; cursor: pointer; margin-bottom: 24px; }
+  .print-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .toc-heading { font-size: 13px; font-weight: 600; color: var(--ink-soft); margin: 0 0 12px; }
+  .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+  .toc a { display: block; padding: 7px 0 7px 16px; margin-left: -1px; border-left: 2px solid transparent; color: var(--ink-soft); text-decoration: none; font-size: 14px; line-height: 1.4; transition: border-color .15s, color .15s; }
+  .toc a:hover, .toc a.active { color: var(--ink); border-left-color: var(--accent); }
+  .toc a.active { font-weight: 500; }
+
+  .content { max-width: 720px; }
+  .chapter { margin-bottom: 60px; }
+  .chapter:last-child { margin-bottom: 0; }
+  .chapter-title-plain, .chapter-head h2 { font-size: 24px; font-weight: 600; margin: 0; }
+  .chapter-title-plain { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .chapter-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--line); }
+  .chapter-num { font-size: 14px; font-weight: 600; color: var(--accent); white-space: nowrap; }
+
+  .subsection { margin-bottom: 26px; }
+  .subsection:last-child { margin-bottom: 0; }
+  .subsection h3 { font-size: 16.5px; font-weight: 500; margin: 0 0 10px; }
+  .subsection p { margin: 0 0 4px; }
+  .subsection ul { margin: 0; padding-left: 22px; }
+  .subsection li { margin-bottom: 8px; }
+  .subsection li:last-child { margin-bottom: 0; }
+
+  .subsection--note { background: var(--surface); border-left: 3px solid var(--accent-warm); padding: 16px 20px; }
+  .subsection--note h3 { color: var(--accent-warm); }
+
+  .formula { font-family: 'IBM Plex Mono', monospace; background: var(--surface); border: 1px solid var(--line); padding: 12px 16px; font-size: 14px; margin: 12px 0; }
+
+  .layer-stack { list-style: none; margin: 20px 0 0; padding: 0; }
+  .layer-stack li { display: grid; grid-template-columns: 68px 1fr; gap: 16px; padding: 16px 0; border-top: 1px solid var(--line); }
+  .layer-stack li:last-child { border-bottom: 1px solid var(--line); }
+  .layer-tag { font-size: 13px; font-weight: 600; color: var(--accent); padding-top: 2px; }
+  .layer-stack strong, .step-timeline strong { font-weight: 500; font-size: 15.5px; display: block; margin-bottom: 4px; }
+  .layer-stack p, .step-timeline p { margin: 0; font-size: 15px; color: var(--ink-soft); }
+
+  .step-timeline { list-style: none; margin: 20px 0 0; padding: 0; }
+  .step-timeline li { display: grid; grid-template-columns: 32px 1fr; gap: 18px; padding-bottom: 28px; position: relative; }
+  .step-timeline li:last-child { padding-bottom: 0; }
+  .step-timeline li:not(:last-child)::before { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 1px; background: var(--line); }
+  .step-dot { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; z-index: 1; }
+
+  .note { color: var(--ink-soft); font-size: 15px; }
+
+  .architecture-diagram {
+    margin: 24px 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #0b0f19;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  }
+  .architecture-diagram img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .architecture-diagram figcaption {
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    background: var(--surface);
+    padding: 10px 16px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+
+  /* References Section Styling */
+  .reference-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin: 20px 0;
+  }
+  .reference-list li {
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 16px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+  .reference-list .ref-num {
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-weight: 600;
+    color: var(--accent);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13.5px;
+  }
+  .reference-list a {
+    color: var(--accent);
+    text-decoration: none;
+    word-break: break-all;
+  }
+  .reference-list a:hover {
+    text-decoration: underline;
+  }
+
+  /* Database ERD & Table Styles */
+  .db-schema-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+  .db-table-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .db-table-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 9px 12px;
+    font-weight: 600;
+    font-size: 13.5px;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .db-table-body {
+    padding: 10px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+  }
+  .db-table-field {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    border-bottom: 1px dashed #e5e5e5;
+  }
+  .db-table-field:last-child { border-bottom: none; }
+  .field-name { font-weight: 500; color: var(--ink); }
+  .field-type { color: var(--ink-soft); font-size: 10.5px; }
+
+  /* UI Dashboard Mockup Component */
+  .ui-mockup-wrapper {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 18px;
+    color: #f8fafc;
+    margin: 24px 0;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    font-family: 'IBM Plex Sans', sans-serif;
+    border: 1px solid #334155;
+  }
+  .ui-mockup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #334155;
+    margin-bottom: 16px;
+  }
+  .ui-mockup-title { font-weight: 600; font-size: 14.5px; color: #34d399; display: flex; align-items: center; gap: 8px; }
+  .ui-mockup-grid {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 768px) { .ui-mockup-grid { grid-template-columns: 1fr; } }
+  .ui-panel-search {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border: 1px solid #334155;
+  }
+  .ui-panel-label { font-size: 12px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .ui-input-box {
+    background: #0f172a;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #e2e8f0;
+    font-size: 12px;
+  }
+  .ui-upload-btn {
+    border: 1.5px dashed #475569;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+    font-size: 12px;
+    color: #94a3b8;
+    cursor: pointer;
+    background: rgba(15,23,42,0.5);
+  }
+  .ui-panel-map {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 14px;
+    position: relative;
+    min-height: 250px;
+    border: 1px solid #334155;
+    background-image: radial-gradient(#334155 1px, transparent 1px);
+    background-size: 18px 18px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .ui-map-legend { font-size: 11.5px; color: #94a3b8; display: flex; gap: 14px; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 6px; }
+  .legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .dot-cam { background: #38bdf8; }
+  .dot-target { background: #f43f5e; }
+  .dot-path { background: #10b981; }
+
+  @media (max-width: 1200px) {
+    .layout { grid-template-columns: 200px 1fr; }
+    .notes-sidebar { display: none; }
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; gap: 28px; padding: 32px 20px 64px; }
+    .toc { position: static; }
+    .print-btn { display: none; }
+    .toc ol { display: flex; flex-wrap: wrap; border-left: none; gap: 2px 0; }
+    .toc li { width: 50%; }
+    .toc a { padding: 6px 0 6px 12px; border-left: 2px solid var(--line); }
+    .content { max-width: 100%; }
+  }
+  @media print {
+    .toc, .notes-sidebar { display: none; }
+    .layout { grid-template-columns: 1fr; padding: 0 24px; }
+    body { background: #fff; }
+  }
+
+  /* Notes Sidebar (Google Docs Comment Panel) */
+  .notes-sidebar {
+    position: sticky;
+    top: 32px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+  }
+  .notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .notes-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .notes-count {
+    font-size: 11px;
+    background: rgba(43,95,82,0.1);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .notes-add-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .notes-add-box textarea {
+    width: 100%;
+    min-height: 65px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px;
+    font-family: inherit;
+    font-size: 12.5px;
+    resize: vertical;
+    outline: none;
+    background: var(--bg);
+  }
+  .notes-add-box textarea:focus {
+    border-color: var(--accent);
+  }
+  .notes-add-box select {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 12px;
+    background: var(--surface);
+  }
+  .add-note-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .add-note-btn:hover { opacity: 0.9; }
+
+  .notes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 480px;
+    overflow-y: auto;
+    padding-right: 2px;
+  }
+  .note-card {
+    background: #FFFDF5;
+    border-left: 4px solid var(--accent-warm);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    border-top: 1px solid #F0E6D2;
+    border-right: 1px solid #F0E6D2;
+    border-bottom: 1px solid #F0E6D2;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  }
+  .note-card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+  .note-card-tag {
+    font-weight: 600;
+    color: var(--accent-warm);
+  }
+  .note-card-text {
+    color: var(--ink);
+    margin: 0 0 6px;
+    line-height: 1.45;
+  }
+  .note-card-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .note-action-btn {
+    background: transparent;
+    border: none;
+    color: var(--ink-soft);
+    font-size: 11px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .note-action-btn:hover { color: #dc2626; }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="masthead-kicker">Đề cương chi tiết</div>
+    <h1>Hệ thống tìm kiếm, định danh và truy vết quỹ đạo con người trong khuôn viên trường học</h1>
+    <p class="masthead-sub">Kiến trúc đa lớp kết hợp thị giác máy tính, Person Re-Identification và dung hợp cảm biến di động (BLE/IMU) để tái dựng hành trình di chuyển trên bản đồ số của khuôn viên theo thời gian thực.</p>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-label="Mục lục">
+    <button class="print-btn" onclick="window.print()">In tài liệu</button>
+    <p class="toc-heading">Mục lục</p>
+    <ol>
+      <li><a href="#mo-dau">Mở đầu</a></li>
+      <li><a href="#chuong-1">Chương 1 — Tổng quan</a></li>
+      <li><a href="#chuong-2">Chương 2 — Cơ sở lý thuyết</a></li>
+      <li><a href="#chuong-3">Chương 3 — Thiết kế hệ thống</a></li>
+      <li><a href="#chuong-4">Chương 4 — Triển khai</a></li>
+      <li><a href="#chuong-5">Chương 5 — Kiểm thử, đánh giá</a></li>
+      <li><a href="#chuong-6">Chương 6 — Kết luận</a></li>
+      <li><a href="#tai-lieu-tham-khao">Tài liệu tham khảo</a></li>
+    </ol>
+  </nav>
+
+  <main class="content">
+
+    <section id="mo-dau" class="chapter">
+      <h2 class="chapter-title-plain">Mở đầu</h2>
+      <div class="subsection">
+        <h3>Lý do chọn đề tài</h3>
+        <p>Trong khuôn viên trường học, việc xác định nhanh vị trí và hành trình di chuyển của một cá nhân cụ thể — phục vụ tìm người thất lạc, hỗ trợ điều tra sự việc an ninh, hoặc giám sát luồng di chuyển tại các khu vực đông người — hiện phần lớn vẫn dựa vào việc xem lại thủ công từng camera riêng lẻ, tốn nhiều thời gian và dễ bỏ sót khi đối tượng đi qua nhiều camera không liền kề.</p>
+      </div>
+      <div class="subsection">
+        <h3>Mục tiêu nghiên cứu</h3>
+        <ul>
+          <li>Xây dựng hệ thống phát hiện, định danh lại (Re-ID) và theo vết một cá nhân xuyên suốt nhiều camera không trùng vùng quan sát.</li>
+          <li>Tái dựng và trực quan hóa quỹ đạo di chuyển trên sơ đồ mặt bằng số của khuôn viên theo thời gian thực.</li>
+          <li>Thử nghiệm dung hợp thêm cảm biến di động (IMU, BLE) để dự đoán hướng di chuyển và tối ưu tài nguyên xử lý.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>Đối tượng và phạm vi nghiên cứu</h3>
+        <p>Đối tượng nghiên cứu là bài toán Person Re-Identification đa camera và bài toán tái dựng quỹ đạo trong môi trường khuôn viên trường học có mạng lưới camera IP cố định. Phạm vi thực nghiệm giới hạn ở quy mô một khuôn viên, không mở rộng sang nhận diện khuôn mặt.</p>
+      </div>
+      <div class="subsection">
+        <h3>Phương pháp nghiên cứu</h3>
+        <p>Kết hợp nghiên cứu lý thuyết (thị giác máy tính, Re-ID, dung hợp cảm biến, cơ sở dữ liệu vector) với thực nghiệm xây dựng pipeline end-to-end, sau đó đánh giá trên bộ dữ liệu chuẩn và/hoặc dữ liệu mô phỏng theo kịch bản thực tế của trường.</p>
+      </div>
+      <div class="subsection subsection--note">
+        <h3>Vấn đề đạo đức và quyền riêng tư dữ liệu</h3>
+        <p>Vì hệ thống thu thập và xử lý hình ảnh, đặc điểm sinh trắc học của con người trong khuôn viên trường học, đề tài cần làm rõ ngay từ đầu: phạm vi dữ liệu được thu thập, thời gian lưu trữ, cơ chế ẩn danh hóa khi không có yêu cầu truy vết cụ thể, và việc tuân thủ quy định của nhà trường cũng như pháp luật về bảo vệ dữ liệu cá nhân — đặc biệt khi đối tượng có thể là học sinh, sinh viên.</p>
+      </div>
+      <div class="subsection">
+        <h3>Bố cục đề tài</h3>
+        <p>Ngoài phần Mở đầu và Kết luận, nội dung được tổ chức thành sáu chương: Tổng quan, Cơ sở lý thuyết, Phân tích và thiết kế hệ thống, Triển khai hệ thống, Kiểm thử và đánh giá, Kết luận và hướng phát triển.</p>
+      </div>
+    </section>
+
+    <section id="chuong-1" class="chapter">
+      <div class="chapter-head"><span class="chapter-num">Chương 01</span><h2>Tổng quan về đề tài</h2></div>
+      <div class="subsection">
+        <h3>1.1 Giới thiệu bài toán</h3>
+        <p>Bài toán trung tâm gồm hai thành phần gắn kết: định danh lại một cá nhân (Person Re-Identification) khi họ xuất hiện tại nhiều camera không liền kề hoặc không trùng vùng quan sát, và tái dựng quỹ đạo di chuyển liên tục của cá nhân đó để trực quan hóa trên sơ đồ mặt bằng số của khuôn viên.</p>
+      </div>
+      <div class="subsection">
+        <h3>1.2 Tình hình nghiên cứu liên quan</h3>
+        <ul>
+          <li>Hướng tiếp cận Re-ID dựa trên CNN kết hợp cơ chế chú ý (attention), ví dụ ResNet kết hợp CBAM.</li>
+          <li>Hướng tiếp cận dựa trên Vision Transformer cho khả năng tổng quát hóa và tốc độ truy vấn tốt hơn.</li>
+          <li>Hướng căn chỉnh cục bộ (local alignment) như AlignedReID, khớp bộ phận cơ thể mà không cần mô hình ước lượng tư thế riêng.</li>
+          <li>Các khung huấn luyện giảm phụ thuộc nhãn (ví dụ DynaMix) giúp mô hình tổng quát tốt hơn trên dữ liệu đơn camera quy mô lớn.</li>
+          <li>Xu hướng dung hợp cảm biến di động (BLE, IMU) hỗ trợ định vị thô và dự đoán hướng di chuyển.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>1.3 Thách thức đặt ra</h3>
+        <ul>
+          <li>Tráo đổi danh tính (ID switch) khi đối tượng bị che khuất tạm thời hoặc mật độ người đông.</li>
+          <li>Nhận diện tập mở (open-set): phân biệt cá nhân chưa từng thấy thay vì ép gán vào một ID đã có.</li>
+          <li>Vùng chuyển giao "mù" giữa hai camera không phủ sóng liên tục, dễ làm đứt gãy quỹ đạo.</li>
+          <li>Ràng buộc thời gian thực và tài nguyên tính toán khi số lượng camera tăng lên.</li>
+          <li>Yêu cầu bảo mật và quyền riêng tư dữ liệu hình ảnh, dữ liệu cảm biến cá nhân.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>1.4 Mục tiêu và phạm vi của hệ thống đề xuất</h3>
+        <p>Hệ thống được giới hạn thử nghiệm trong khuôn viên một trường học với số lượng camera IP cố định, tập trung vào kịch bản tìm một cá nhân theo ảnh mẫu hoặc lựa chọn trực tiếp từ khung hình, dựa trên đặc trưng ngoại hình và dáng đi thay vì nhận diện khuôn mặt.</p>
+      </div>
+    </section>
+
+    <section id="chuong-2" class="chapter">
+      <div class="chapter-head"><span class="chapter-num">Chương 02</span><h2>Cơ sở lý thuyết</h2></div>
+      <div class="subsection">
+        <h3>2.1 Phát hiện đối tượng</h3>
+        <p>Họ mô hình <code>YOLOv7</code>/<code>YOLOv8</code> cho phát hiện người thời gian thực; các biến thể lớn hơn như <code>YOLOv8x</code> kết hợp kỹ thuật rescaling khung hình được cân nhắc để cải thiện độ chính xác trên vật thể nhỏ, xa camera.</p>
+      </div>
+      <div class="subsection">
+        <h3>2.2 Theo dõi đa đối tượng trong một camera (Single-Camera Multi-Object Tracking)</h3>
+        <p><code>ByteTrack</code> và <code>SORT</code> (kết hợp Kalman Filter và thuật toán Hungarian theo IoU) giúp duy trì vết đối tượng trong từng camera. Để giải quyết triệt để vấn đề đứt vết và rung lắc quỹ đạo, hệ thống tích hợp hai kỹ thuật cốt lõi từ <code>StrongSORT</code>:</p>
+        <ul>
+          <li><strong>AFLink (Appearance-Free Link / FLink):</strong> Mô-đun học liên kết các đoạn vệt di chuyển (tracklets) bị đứt gãy dựa hoàn toàn trên mối quan hệ không-thời gian (vị trí, thời gian, vận tốc) mà <em>không cần phụ thuộc vào đặc trưng ngoại hình</em>. Điều này giúp nối lại vết theo dõi chính xác ngay cả khi đối tượng bị che khuất hoàn toàn hoặc thay đổi tư thế mạnh.</li>
+          <li><strong>GSI (Gaussian-process Interpolation):</strong> Kỹ thuật nội suy và làm mượt quỹ đạo dựa trên Quá trình Gaussian (Gaussian Process Regression). GSI bù đắp các khoảng trống do bỏ sót phát hiện (missed detections) và khử nhiễu rung lắc của bounding box, tạo ra quỹ đạo chuyển động mượt mà tự nhiên.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>2.3 Bài toán Re-Identification</h3>
+        <ul>
+          <li>Hướng CNN kết hợp attention: <code>ResNet50-CBAM</code> chèn mô-đun chú ý kênh và không gian, hoặc <code>ResNet50</code> last-stride=1 kết hợp multi-head attention.</li>
+          <li>Hướng Transformer: <code>ViT-base</code> encoder cho vector đặc trưng có tính tổng quát cao, tốc độ truy vấn nhanh hơn.</li>
+          <li>Hướng căn chỉnh cục bộ: <code>AlignedReID</code> chia dải ngang và tự khớp đặc trưng cục bộ, không cần Pose Estimation riêng.</li>
+          <li>Chiến lược huấn luyện: khung <code>DynaMix</code> với mô-đun gán nhãn lại (lọc nhiễu nhãn giả) và mô-đun lấy mẫu dữ liệu theo độ tương đồng trung vị, thuật toán Hungarian.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>2.4 Cơ sở dữ liệu vector và tìm kiếm lân cận gần đúng</h3>
+        <p><code>FAISS</code> phục vụ lưu trữ và truy vấn ANN theo độ tương đồng cosine với độ trễ rất thấp. Mỗi định danh được đại diện bởi một centroid embedding, cập nhật theo trung bình động EMA:</p>
+        <p class="formula">c<sub>id</sub> ← (1 − α) · c<sub>id</sub> + α · f<sub>new</sub></p>
+        <p>Quyết định tập mở dựa trên ngưỡng cosine: lớn hơn 0.9 thì xác nhận ID cũ và cập nhật centroid; nhỏ hơn hoặc bằng 0.9 thì khởi tạo ID mới mà không cần huấn luyện lại mô hình.</p>
+      </div>
+      <div class="subsection">
+        <h3>2.5 Dung hợp đa cảm biến di động</h3>
+        <p><code>BLE</code> (RSSI) hỗ trợ định vị vùng thô; <code>IMU</code> (góc yaw, gia tốc) cung cấp hướng và vận tốc di chuyển tức thời, làm đầu vào cho dự đoán camera kế tiếp.</p>
+      </div>
+      <div class="subsection">
+        <h3>2.6 Mô hình xác suất cho chuyển giao camera</h3>
+        <p>Chuỗi Markov mô hình hoá bộ đếm thời gian chờ chuyển giao (Handover Expiry Timer), quyết định thời điểm hợp lý để ngắt luồng theo dõi khi đối tượng đi vào vùng không có camera phủ sóng.</p>
+      </div>
+      <div class="subsection">
+        <h3>2.7 Công nghệ và công cụ nền tảng</h3>
+        <p><code>PyTorch</code>, <code>OpenCV</code>, <code>FAISS</code>, <code>Ultralytics YOLO</code> ở tầng xử lý; <code>FastAPI</code> kết hợp <code>React</code> hoặc <code>Streamlit</code> ở tầng ứng dụng; hiển thị bản đồ bằng công cụ GIS.</p>
+      </div>
+    </section>
+
+    <section id="chuong-3" class="chapter">
+      <div class="chapter-head"><span class="chapter-num">Chương 03</span><h2>Phân tích và thiết kế hệ thống</h2></div>
+      <div class="subsection">
+        <h3>3.1 Phát biểu bài toán và yêu cầu hệ thống</h3>
+        <p>Yêu cầu chức năng: tìm kiếm theo ảnh mẫu hoặc mô tả màu sắc, hiển thị quỹ đạo theo thời gian thực. Yêu cầu phi chức năng: độ trễ xử lý, khả năng mở rộng số lượng camera, độ chính xác Re-ID.</p>
+      </div>
+      <div class="subsection">
+        <h3>3.2 Kiến trúc tổng thể — sáu lớp xử lý</h3>
+        <p>Hệ thống được tổ chức thành sáu lớp kế tiếp nhau, từ thu nhận dữ liệu thô đến trực quan hóa kết quả:</p>
+        
+        <figure class="architecture-diagram">
+          <img src="six_layer_architecture_1789182174999.jpg" alt="Sơ đồ luồng hình ảnh và kiến trúc 6 lớp xử lý hệ thống">
+          <figcaption>Hình 3.1: Sơ đồ tổng quan luồng dữ liệu hình ảnh và xử lý 6 lớp trong hệ thống</figcaption>
+        </figure>
+
+        <ol class="layer-stack">
+          <li><span class="layer-tag">Lớp 1</span><div><strong>Dữ liệu và đa cảm biến</strong><p>Luồng RTSP từ camera IP (1080p, 20–30 FPS); dữ liệu bổ trợ BLE RSSI và IMU (góc yaw, vận tốc) từ smartphone.</p></div></li>
+          <li><span class="layer-tag">Lớp 2</span><div><strong>Phát hiện và theo dõi nội camera</strong><p><code>YOLOv8x</code>/<code>YOLOv7</code> phát hiện người (ngưỡng tin cậy trên 0.5); <code>ByteTrack</code>/<code>StrongSORT</code> duy trì ID; tích hợp <code>AFLink (FLink)</code> nối vệt di chuyển không cần ngoại hình và <code>GSI</code> làm mượt quỹ đạo nội camera.</p></div></li>
+          <li><span class="layer-tag">Lớp 3</span><div><strong>Trích xuất đặc trưng Re-ID</strong><p><code>ResNet50-CBAM</code>, <code>ViT-base</code> hoặc <code>AlignedReID</code> sinh vector đặc trưng ngoại hình và dáng đi; huấn luyện theo khung <code>DynaMix</code>.</p></div></li>
+          <li><span class="layer-tag">Lớp 4</span><div><strong>CSDL vector và nhận diện tập mở</strong><p><code>FAISS</code> lưu trữ và truy vấn ANN; centroid EMA; ngưỡng cosine 0.9 phân nhánh ID cũ hoặc mới.</p></div></li>
+          <li><span class="layer-tag">Lớp 5</span><div><strong>Dung hợp cảm biến và chuyển giao camera dự đoán</strong><p>Dự đoán camera kế tiếp theo góc yaw; kích hoạt trước và tắt luồng xử lý; bộ đếm handover theo chuỗi Markov.</p></div></li>
+          <li><span class="layer-tag">Lớp 6</span><div><strong>Ứng dụng và vẽ sơ đồ đường đi</strong><p>Ghép chuỗi (camera, thời điểm, vị trí) thành quỹ đạo liên tục; áp dụng <code>GSI (Gaussian Process Interpolation)</code> nội suy điểm khuyết trên sơ đồ mặt bằng; giao diện tìm kiếm bằng ảnh mẫu hoặc thuộc tính trang phục.</p></div></li>
+        </ol>
+      </div>
+      <div class="subsection">
+        <h3>3.3 Thiết kế luồng dữ liệu tổng thể (Data Flow Diagram)</h3>
+        <p>Luồng dữ liệu end-to-end vận hành tuần tự và khép kín qua các giai đoạn chính: Camera IP gửi luồng RTSP → Phát hiện & Theo dõi người (YOLOv8/ByteTrack) → Trích xuất Vector đặc trưng Re-ID → Truy vấn & Đối sánh CSDL Vector FAISS → Dung hợp cảm biến di động (BLE/IMU) & Dự đoán chuyển giao Handover → Cập nhật và Trực quan hóa quỹ đạo di chuyển trên giao diện web.</p>
+        
+        <figure class="architecture-diagram" style="background: #ffffff; border-color: var(--line);">
+          <img src="data_flow_diagram_1789182470485.jpg" alt="Sơ đồ luồng dữ liệu chi tiết Data Flow Diagram">
+          <figcaption>Hình 3.2: Sơ đồ luồng dữ liệu tổng thể (End-to-End Data Flow Diagram) của hệ thống</figcaption>
+        </figure>
+      </div>
+      <div class="subsection">
+        <h3>3.4 Thiết kế cơ sở dữ liệu (Database Schema)</h3>
+        <p>Hệ thống sử dụng mô hình cơ sở dữ liệu kết hợp giữa <strong>CSDL quan hệ (Relational DB)</strong> để quản lý thông tin sự kiện & cấu hình camera, và <strong>CSDL Vector (FAISS Index)</strong> để truy vấn ANN độ trễ siêu thấp:</p>
+        
+        <div class="db-schema-grid">
+          <div class="db-table-card">
+            <div class="db-table-header">📁 Person_Identities</div>
+            <div class="db-table-body">
+              <div class="db-table-field"><span class="field-name">🔑 global_id</span><span class="field-type">VARCHAR(64)</span></div>
+              <div class="db-table-field"><span class="field-name">centroid_vec</span><span class="field-type">VECTOR(512)</span></div>
+              <div class="db-table-field"><span class="field-name">first_seen</span><span class="field-type">DATETIME</span></div>
+              <div class="db-table-field"><span class="field-name">last_seen</span><span class="field-type">DATETIME</span></div>
+              <div class="db-table-field"><span class="field-name">status</span><span class="field-type">ENUM</span></div>
+            </div>
+          </div>
+
+          <div class="db-table-card">
+            <div class="db-table-header">📸 Appearance_Events</div>
+            <div class="db-table-body">
+              <div class="db-table-field"><span class="field-name">🔑 event_id</span><span class="field-type">BIGINT</span></div>
+              <div class="db-table-field"><span class="field-name">🔗 global_id</span><span class="field-type">VARCHAR(64)</span></div>
+              <div class="db-table-field"><span class="field-name">camera_id</span><span class="field-type">VARCHAR(32)</span></div>
+              <div class="db-table-field"><span class="field-name">timestamp (t)</span><span class="field-type">DATETIME</span></div>
+              <div class="db-table-field"><span class="field-name">location (Loc)</span><span class="field-type">POINT(X,Y)</span></div>
+              <div class="db-table-field"><span class="field-name">bbox</span><span class="field-type">JSON</span></div>
+            </div>
+          </div>
+
+          <div class="db-table-card">
+            <div class="db-table-header">📡 Camera_Handover_Config</div>
+            <div class="db-table-body">
+              <div class="db-table-field"><span class="field-name">🔑 config_id</span><span class="field-type">INT</span></div>
+              <div class="db-table-field"><span class="field-name">src_cam_id</span><span class="field-type">VARCHAR(32)</span></div>
+              <div class="db-table-field"><span class="field-name">dst_cam_id</span><span class="field-type">VARCHAR(32)</span></div>
+              <div class="db-table-field"><span class="field-name">yaw_range</span><span class="field-type">FLOAT[2]</span></div>
+              <div class="db-table-field"><span class="field-name">timeout_sec</span><span class="field-type">INT</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>3.5 Thiết kế giao diện người dùng (Dashboard Wireframe)</h3>
+        <p>Giao diện điều hành hệ thống gồm 3 khu vực chức năng chính: Ô tìm kiếm đa phương thức (Ảnh/Thuộc tính), Sơ đồ mặt bằng khuôn viên trực tiếp với lớp phủ quỹ đạo di chuyển (Trajectory Overlay), và Bảng điều khiển camera theo thời gian thực.</p>
+
+        <!-- Dynamic Visual Mockup of UI -->
+        <div class="ui-mockup-wrapper">
+          <div class="ui-mockup-header">
+            <div class="ui-mockup-title">🟢 CAMPUS TRAJECTORY RECONSTRUCTION DASHBOARD v2.4</div>
+            <div style="font-size: 12px; color: #94a3b8;">System Status: <span style="color: #34d399;">ONLINE</span> (12 Cameras Active)</div>
+          </div>
+
+          <div class="ui-mockup-grid">
+            <!-- Sidebar -->
+            <div class="ui-panel-search">
+              <div class="ui-panel-label">🔍 1. Tìm kiếm đối tượng</div>
+              <div class="ui-upload-btn">🖼️ Kéo thả / Chọn ảnh mẫu</div>
+              
+              <div class="ui-panel-label" style="margin-top: 6px;">🎨 2. Lọc thuộc tính</div>
+              <select class="ui-input-box">
+                <option>Màu áo: Áo Trắng (White Top)</option>
+                <option>Màu áo: Áo Đen (Black Top)</option>
+              </select>
+              <select class="ui-input-box">
+                <option>Màu quần: Quần Xanh (Blue Jeans)</option>
+                <option>Màu quần: Quần Đen (Black Pants)</option>
+              </select>
+
+              <button style="background: #10b981; border: none; color: white; padding: 9px; border-radius: 6px; font-weight: 600; font-size: 12px; cursor: pointer; margin-top: 6px;">🔎 Bắt đầu truy vết Quỹ đạo</button>
+            </div>
+
+            <!-- Map View -->
+            <div class="ui-panel-map">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="ui-panel-label" style="color: #38bdf8;">🗺️ Map View — Sơ đồ Mặt bằng Khuôn viên số</div>
+                <div class="ui-map-legend">
+                  <span class="legend-item"><span class="legend-dot dot-cam"></span> Camera Nodes</span>
+                  <span class="legend-item"><span class="legend-dot dot-target"></span> Đối tượng ID: #8492</span>
+                  <span class="legend-item"><span class="legend-dot dot-path"></span> Quỹ đạo di chuyển</span>
+                </div>
+              </div>
+
+              <!-- Visual Trajectory SVG -->
+              <svg viewBox="0 0 500 140" style="width: 100%; height: 140px; margin: 10px 0;">
+                <!-- Map outlines -->
+                <rect x="20" y="20" width="100" height="60" rx="4" fill="#334155" opacity="0.4" />
+                <text x="70" y="55" fill="#94a3b8" font-size="10" text-anchor="middle">Tòa Nhà A</text>
+
+                <rect x="180" y="20" width="120" height="70" rx="4" fill="#334155" opacity="0.4" />
+                <text x="240" y="60" fill="#94a3b8" font-size="10" text-anchor="middle">Thư Viện</text>
+
+                <rect x="360" y="20" width="110" height="80" rx="4" fill="#334155" opacity="0.4" />
+                <text x="415" y="65" fill="#94a3b8" font-size="10" text-anchor="middle">Tòa Nhà B</text>
+
+                <!-- Trajectory Path line -->
+                <path d="M 70 80 Q 130 110, 240 90 T 415 100" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="6,4" />
+
+                <!-- Camera nodes -->
+                <circle cx="70" cy="80" r="7" fill="#38bdf8" />
+                <text x="70" y="73" fill="#ffffff" font-size="9" text-anchor="middle">Cam-01 (10:15)</text>
+
+                <circle cx="240" cy="90" r="7" fill="#38bdf8" />
+                <text x="240" y="83" fill="#ffffff" font-size="9" text-anchor="middle">Cam-04 (10:18)</text>
+
+                <circle cx="415" cy="100" r="9" fill="#f43f5e" />
+                <text x="415" y="91" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">Cam-09 (10:22 - Hiện tại)</text>
+              </svg>
+
+              <div style="font-size: 11px; color: #94a3b8; text-align: right;">
+                Kế thừa chuyển giao: <strong style="color: #34d399;">Cam-04 ➔ Cam-09</strong> (Hệ số tin cậy Markov: 0.94)
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="chuong-4" class="chapter">
+      <div class="chapter-head"><span class="chapter-num">Chương 04</span><h2>Triển khai hệ thống</h2></div>
+      <p>Lộ trình triển khai gồm sáu bước kế tiếp, tương ứng với sáu lớp kiến trúc ở Chương 3:</p>
+      <ol class="step-timeline">
+        <li><span class="step-dot">1</span><div><strong>Hạ tầng dữ liệu và phần cứng</strong><p>Kết nối mạng camera CCTV thực tế hoặc chuẩn bị dữ liệu mô phỏng (<code>Market-1501</code>, <code>MSMT17</code>); cấu hình môi trường <code>PyTorch</code>, <code>OpenCV</code>, <code>FAISS</code>, <code>Ultralytics</code>.</p></div></li>
+        <li><span class="step-dot">2</span><div><strong>Xây dựng và huấn luyện mô hình Re-ID</strong><p>Backbone <code>ResNet50-CBAM</code> hoặc <code>ViT-base</code>; hàm mất mát Triplet Loss kết hợp Cross-Entropy; cân nhắc áp dụng <code>DynaMix</code> để tổng quát tốt trên góc camera mới.</p></div></li>
+        <li><span class="step-dot">3</span><div><strong>Phát hiện và theo dõi đa đối tượng</strong><p>Tải trọng số <code>YOLOv8x</code>/<code>YOLOv7</code>; ghép nối <code>ByteTrack</code>/<code>StrongSORT</code>; tích hợp mô-đun <code>AFLink (FLink)</code> để hàn nối tracklet khi bị che khuất và <code>GSI</code> để nội suy làm mượt vị trí bounding box.</p></div></li>
+        <li><span class="step-dot">4</span><div><strong>CSDL vector FAISS và logic Open-Set</strong><p>Cấu hình lưu trữ embedding; hàm tính cosine similarity với danh sách centroid; nhánh cập nhật EMA khi tương đồng trên 0.9, hoặc khởi tạo ID mới khi thấp hơn.</p></div></li>
+        <li><span class="step-dot">5</span><div><strong>Tích hợp cảm biến di động và chuyển giao camera</strong><p>Ứng dụng di động gửi dữ liệu IMU/BLE về server; bảng chuyển giao bật/tắt luồng camera tương ứng để tiết kiệm băng thông và độ trễ.</p></div></li>
+        <li><span class="step-dot">6</span><div><strong>Giao diện web và tái dựng trajectory</strong><p>Dashboard (<code>Streamlit</code> hoặc <code>React</code> kết hợp <code>FastAPI</code>) hiển thị bản đồ; khi chọn một ID hoặc tìm bằng ảnh, hệ thống nối các mốc thành tuyến di chuyển trên sơ đồ.</p></div></li>
+      </ol>
+    </section>
+
+    <section id="chuong-5" class="chapter">
+      <div class="chapter-head"><span class="chapter-num">Chương 05</span><h2>Kiểm thử và đánh giá hệ thống</h2></div>
+      <div class="subsection">
+        <h3>5.1 Tiêu chí và phương pháp đánh giá</h3>
+        <ul>
+          <li>Độ chính xác Re-ID: Rank-1, Rank-5, mAP trên tập kiểm thử.</li>
+          <li>Tỉ lệ tráo đổi danh tính (ID switch rate) trong theo dõi nội camera.</li>
+          <li>Độ trễ xử lý end-to-end, so sánh có và không áp dụng chuyển giao dự đoán (tham chiếu khoảng 70 ms so với 170 ms khi mọi camera cùng xử lý liên tục).</li>
+          <li>Độ chính xác định vị trên sơ đồ mặt bằng, tính theo sai số vị trí trung bình.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>5.2 Kịch bản thử nghiệm</h3>
+        <ul>
+          <li>Đối tượng bị che khuất tạm thời bởi cây cối hoặc đám đông.</li>
+          <li>Đối tượng đi qua vùng chuyển giao không có camera phủ sóng.</li>
+          <li>Đối tượng hoàn toàn mới, kiểm thử khả năng nhận diện tập mở.</li>
+          <li>Nhiều đối tượng có trang phục tương tự nhau trong cùng khung hình.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>5.3 Kết quả thực nghiệm dự kiến</h3>
+        <p>Trình bày dưới dạng bảng so sánh các phương án backbone (<code>ResNet50-CBAM</code>, <code>ViT-base</code>, <code>AlignedReID</code>) và biểu đồ độ trễ theo số lượng camera hoạt động đồng thời.</p>
+      </div>
+      <div class="subsection">
+        <h3>5.4 Phân tích và thảo luận hạn chế</h3>
+        <p>Đánh giá các trường hợp sai như nhận nhầm hoặc mất dấu vết, ảnh hưởng của điều kiện ánh sáng và góc camera, mức độ phụ thuộc vào thiết bị di động ở Lớp 5.</p>
+      </div>
+    </section>
+
+    <section id="chuong-6" class="chapter">
+      <div class="chapter-head"><span class="chapter-num">Chương 06</span><h2>Kết luận và hướng phát triển</h2></div>
+      <div class="subsection">
+        <h3>6.1 Kết quả đạt được</h3>
+        <p>Tóm tắt hệ thống end-to-end đã xây dựng, từ phát hiện, theo dõi, Re-ID đến trực quan hóa quỹ đạo trên bản đồ khuôn viên.</p>
+      </div>
+      <div class="subsection">
+        <h3>6.2 Hạn chế của đề tài</h3>
+        <ul>
+          <li>Phụ thuộc vào thiết bị di động cá nhân cho Lớp 5.</li>
+          <li>Độ chính xác giảm trong đám đông rất lớn hoặc khi trang phục đồng phục giống nhau.</li>
+          <li>Chưa xử lý toàn diện vấn đề quyền riêng tư khi mở rộng quy mô thực tế.</li>
+        </ul>
+      </div>
+      <div class="subsection">
+        <h3>6.3 Hướng phát triển</h3>
+        <ul>
+          <li>Mở rộng liên kết nhiều khuôn viên hoặc tòa nhà.</li>
+          <li>Tích hợp thêm cảm biến như thẻ RFID sinh viên hoặc camera nhiệt cho điều kiện ánh sáng yếu.</li>
+          <li>Cải thiện mô hình open-set và cơ chế ẩn danh hóa dữ liệu khi không phục vụ mục đích truy vết cụ thể.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="tai-lieu-tham-khao" class="chapter">
+      <h2 class="chapter-title-plain">Tài liệu tham khảo</h2>
+      <p class="note">Danh mục các công trình nghiên cứu khoa học, bài báo và mã nguồn được tham chiếu trong hệ thống (Chuẩn IEEE / APA):</p>
+      
+      <ol class="reference-list">
+        <li>
+          <span class="ref-num">[1]</span>
+          <strong>StrongSORT:</strong> Du, Y., Zhao, Z., Song, Y., Zhao, Y., Su, F., Gong, T., & Meng, H. (2022). <em>StrongSORT: Make DeepSORT Great Again</em> (arXiv Preprint arXiv:2202.13514). arXiv. 
+          <br><a href="https://arxiv.org/abs/2202.13514" target="_blank">https://arxiv.org/abs/2202.13514</a>
+        </li>
+        <li>
+          <span class="ref-num">[2]</span>
+          <strong>DynaMix:</strong> Mamedov, T., Konushin, A., & Konushin, V. (2025). <em>DynaMix: Generalizable Person Re-identification via Dynamic Relabeling and Mixed Data Sampling</em> (arXiv Preprint arXiv:2511.19067). arXiv. 
+          <br><a href="https://arxiv.org/abs/2511.19067" target="_blank">https://arxiv.org/abs/2511.19067</a>
+        </li>
+        <li>
+          <span class="ref-num">[3]</span>
+          <strong>RAMOT:</strong> Sharma, M., Singh, A., Kunwar, A., Tagore, N. K., & Kumar, S. (2025). Retrieval Augmented Continuous Person Tracking and Re-Identification. In <em>Proceedings of the Indian Conference on Computer Vision, Graphics, and Image Processing (ICVGIP 2025)</em> (pp. 1–11). ACM. 
+          <br><a href="https://doi.org/10.1145/3774521.3774616" target="_blank">https://doi.org/10.1145/3774521.3774616</a>
+        </li>
+        <li>
+          <span class="ref-num">[4]</span>
+          <strong>CamTrack:</strong> Sou, S.-I., Huang, Y.-C., & Wu, C.-L. (2026). Multi-sensor fusion for user matching and continuous tracking leveraging camera handover in surveillance systems. <em>Neural Computing and Applications</em>, 38, 387. 
+          <br><a href="https://doi.org/10.1007/s00521-026-12119-7" target="_blank">https://doi.org/10.1007/s00521-026-12119-7</a>
+        </li>
+        <li>
+          <span class="ref-num">[5]</span>
+          <strong>AlignedReID:</strong> Huang, H. (2017). <em>AlignedReID-Re-Production-Pytorch</em> [Computer software]. GitHub. 
+          <br><a href="https://github.com/huanghoujing/AlignedReID-Re-Production-Pytorch" target="_blank">https://github.com/huanghoujing/AlignedReID-Re-Production-Pytorch</a>
+        </li>
+      </ol>
+    </section>
+
+  </main>
+
+  <!-- Right Sidebar: Google Docs Style Note Panel -->
+  <aside class="notes-sidebar">
+    <div class="notes-header">
+      <h3>📝 Ghi chú & Điều chỉnh</h3>
+      <span class="notes-count" id="notes-count">0 ghi chú</span>
+    </div>
+    
+    <div class="notes-add-box">
+      <textarea id="new-note-input" placeholder="Nhập ghi chú / nhận xét cần chỉnh sửa..."></textarea>
+      <select id="new-note-section">
+        <option value="Chương 1">Chương 1 — Tổng quan</option>
+        <option value="Chương 2">Chương 2 — Cơ sở lý thuyết</option>
+        <option value="Chương 3" selected>Chương 3 — Thiết kế hệ thống</option>
+        <option value="Chương 4">Chương 4 — Triển khai</option>
+        <option value="Chương 5">Chương 5 — Kiểm thử</option>
+        <option value="Chương 6">Chương 6 — Kết luận</option>
+      </select>
+      <button class="add-note-btn" onclick="addNewNote()">+ Thêm ghi chú</button>
+      
+      <div style="display: flex; gap: 6px; margin-top: 6px;">
+        <button class="add-note-btn" style="background: #2563eb; flex: 1; font-size: 11px;" onclick="exportNotes()">📥 Xuất JSON</button>
+        <button class="add-note-btn" style="background: #7c3aed; flex: 1; font-size: 11px;" onclick="document.getElementById('import-file-input').click()">📤 Nhập JSON</button>
+        <input type="file" id="import-file-input" style="display:none;" accept=".json" onchange="importNotes(event)">
+      </div>
+      <button class="add-note-btn" style="background: #475569; font-size: 11px; margin-top: 4px;" onclick="copyNotesToClipboard()">📋 Copy tất cả ghi chú ra Text</button>
+    </div>
+
+    <div class="notes-list" id="notes-list-container">
+      <!-- Notes generated via JS -->
+    </div>
+  </aside>
+</div>
+
+<script>
+  const links = document.querySelectorAll('.toc a');
+  const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const idx = sections.indexOf(entry.target);
+      if (idx === -1 || !entry.isIntersecting) return;
+      links.forEach(l => l.classList.remove('active'));
+      links[idx].classList.add('active');
+    });
+  }, { rootMargin: '-15% 0px -70% 0px' });
+  sections.forEach(s => s && obs.observe(s));
+
+  // Interactive Notes Functionality with LocalStorage
+  const defaultNotes = [
+    {
+      id: 1,
+      section: 'Chương 2',
+      text: 'Đã bổ sung mô-đun StrongSORT (AFLink & GSI) ở Mục 2.2 giải quyết đứt vết che khuất.',
+      time: '10:15 - Hôm nay'
+    },
+    {
+      id: 2,
+      section: 'Chương 3',
+      text: 'Kiểm tra lại ngưỡng Cosine 0.9 ở FAISS Lớp 4 và sơ đồ luồng dữ liệu DFD Mục 3.3.',
+      time: '10:18 - Hôm nay'
+    },
+    {
+      id: 3,
+      section: 'Chương 3',
+      text: 'Bổ sung sơ đồ ERD 3.4 và Giao diện Dashboard Wireframe 3.5 vào tài liệu.',
+      time: '10:20 - Hôm nay'
+    }
+  ];
+
+  function getNotes() {
+    const saved = localStorage.getItem('thesis_notes');
+    if (!saved) {
+      localStorage.setItem('thesis_notes', JSON.stringify(defaultNotes));
+      return defaultNotes;
+    }
+    return JSON.parse(saved);
+  }
+
+  function renderNotes() {
+    const notes = getNotes();
+    const container = document.getElementById('notes-list-container');
+    const countEl = document.getElementById('notes-count');
+    if (!container) return;
+
+    countEl.innerText = notes.length + ' ghi chú';
+    if (notes.length === 0) {
+      container.innerHTML = '<div style="text-align: center; color: var(--ink-soft); font-size: 12.5px; padding: 20px 0;">Chưa có ghi chú nào. Hãy tạo ghi chú ở ô trên!</div>';
+      return;
+    }
+
+    container.innerHTML = notes.map(n => `
+      <div class="note-card">
+        <div class="note-card-meta">
+          <span class="note-card-tag">📌 ${n.section}</span>
+          <span>${n.time}</span>
+        </div>
+        <p class="note-card-text">${n.text}</p>
+        <div class="note-card-actions">
+          <button class="note-action-btn" onclick="deleteNote(${n.id})">🗑️ Xóa</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function addNewNote() {
+    const input = document.getElementById('new-note-input');
+    const sectionSelect = document.getElementById('new-note-section');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const notes = getNotes();
+    const newNote = {
+      id: Date.now(),
+      section: sectionSelect.value,
+      text: text,
+      time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) + ' - Vừa xong'
+    };
+
+    notes.unshift(newNote);
+    localStorage.setItem('thesis_notes', JSON.stringify(notes));
+    input.value = '';
+    renderNotes();
+  }
+
+  function deleteNote(id) {
+    let notes = getNotes();
+    notes = notes.filter(n => n.id !== id);
+    localStorage.setItem('thesis_notes', JSON.stringify(notes));
+    renderNotes();
+  }
+
+  function exportNotes() {
+    const notes = getNotes();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(notes, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "ghi_chu_de_cuong.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  }
+
+  function importNotes(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (Array.isArray(imported)) {
+          localStorage.setItem('thesis_notes', JSON.stringify(imported));
+          renderNotes();
+          alert('✅ Đã nhập thành công ' + imported.length + ' ghi chú!');
+        }
+      } catch (err) {
+        alert('❌ File JSON không hợp lệ!');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function copyNotesToClipboard() {
+    const notes = getNotes();
+    if (notes.length === 0) { alert('Chưa có ghi chú nào!'); return; }
+    const text = notes.map((n, i) => `${i+1}. [${n.section}] (${n.time})\n   ${n.text}`).join('\n\n');
+    navigator.clipboard.writeText(text).then(() => {
+      alert('📋 Đã copy tất cả ghi chú vào Clipboard! Bạn có thể dán (Ctrl+V) vào Zalo / Email / Word.');
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', renderNotes);
+</script>
+
+</body>
+</html>
