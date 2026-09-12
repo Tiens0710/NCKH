@@ -153,6 +153,48 @@
     text-decoration: underline;
   }
 
+  /* Dataset Table Styling */
+  .dataset-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .dataset-table th {
+    background: var(--accent);
+    color: #fff;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .dataset-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .dataset-table tr:last-child td {
+    border-bottom: none;
+  }
+  .dataset-table tr:nth-child(even) {
+    background: rgba(0,0,0,0.015);
+  }
+  .dataset-table a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+  .dataset-table a:hover {
+    text-decoration: underline;
+  }
+
   /* Database ERD & Table Styles */
   .db-schema-grid {
     display: grid;
@@ -720,7 +762,58 @@
         </ul>
       </div>
       <div class="subsection">
-        <h3>5.2 Kịch bản thử nghiệm</h3>
+        <h3>5.2 Bộ dữ liệu tham khảo huấn luyện và đánh giá (Benchmark Datasets)</h3>
+        <p>Vì dữ liệu camera thực tế của trường thường chưa đủ lớn để huấn luyện mô hình Re-ID từ đầu (from scratch), nhóm đề xuất sử dụng các bộ dữ liệu benchmark công khai dưới đây để tiền huấn luyện (pretrain), sau đó fine-tune lại trên tập dữ liệu tự thu thập tại trường. Kết quả mAP và Rank-1 Accuracy công bố trên các bộ này cũng là cơ sở để so sánh mô hình của nhóm với các công trình khác:</p>
+
+        <div style="overflow-x: auto; margin: 18px 0;">
+          <table class="dataset-table">
+            <thead>
+              <tr>
+                <th>Dataset</th>
+                <th>Số cam.</th>
+                <th>Số danh tính</th>
+                <th>Số ảnh</th>
+                <th>Đặc điểm và lưu ý</th>
+                <th>Nguồn</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Market-1501</strong></td>
+                <td>6</td>
+                <td>1.501</td>
+                <td>32.668</td>
+                <td>Chụp trước siêu thị tại Đại học Thanh Hoa. Bounding box do bộ phát hiện DPM sinh ra, kèm ảnh nhiễu (distractor) để kiểm tra độ bền mô hình. Chuẩn mAP phổ biến nhất hiện nay.</td>
+                <td><a href="https://zheng-lab.cecs.anu.edu.au/Project_market1501.html" target="_blank">Trang chủ ANU</a></td>
+              </tr>
+              <tr>
+                <td><strong>DukeMTMC-reID</strong></td>
+                <td>8</td>
+                <td>1.404</td>
+                <td>36.411</td>
+                <td>Trích từ video theo vết đa camera tại Đại học Duke, bounding box vẽ tay, góc quay và ánh sáng đa dạng hơn Market-1501.<br><span style="color: #c53030; font-size: 12px; font-weight: 500;">⚠️ Lưu ý: Bộ dữ liệu gốc đã bị nhóm tác giả rút lại (retracted) vì lý do quyền riêng tư — chỉ dùng cho mục đích học thuật nội bộ.</span></td>
+                <td><a href="https://www.kaggle.com/datasets" target="_blank">Kaggle Mirror</a></td>
+              </tr>
+              <tr>
+                <td><strong>CUHK01 / 02 / 03</strong></td>
+                <td>2 mỗi bộ</td>
+                <td>971 / 1.816 / 1.360</td>
+                <td>3.884 / 7.264 / 13.164</td>
+                <td>Bộ ba dataset của Đại học Trung văn Hương Cảng (CUHK), mỗi đối tượng chỉ xuất hiện ở 2 camera. CUHK03 có cả bounding box vẽ tay và tự động phát hiện, hợp để kiểm tra khái quát hóa khi ít camera hơn Market-1501/Duke.</td>
+                <td><a href="http://www.ee.cuhk.edu.hk/~xgwang/CUHK_identification.html" target="_blank">Trang chủ CUHK</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subsection--note" style="margin-top: 16px;">
+          <h3>⚠️ Lưu ý quan trọng khi sử dụng DukeMTMC-reID</h3>
+          <p>Bộ dữ liệu <code>DukeMTMC-reID</code> đã bị nhóm tác giả gốc chính thức rút lại (retracted) do vướng vấn đề về sự đồng thuận (consent) của người được quay. Nhóm chỉ nên sử dụng cho mục đích học thuật nội bộ (huấn luyện / so sánh mô hình), không dùng lại các ảnh gốc trong sản phẩm demo công khai, và trình bày rõ giới hạn này trong phần Đạo đức dữ liệu của báo cáo.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>5.3 Kịch bản thử nghiệm</h3>
         <ul>
           <li>Đối tượng bị che khuất tạm thời bởi cây cối hoặc đám đông.</li>
           <li>Đối tượng đi qua vùng chuyển giao không có camera phủ sóng.</li>
@@ -729,11 +822,11 @@
         </ul>
       </div>
       <div class="subsection">
-        <h3>5.3 Kết quả thực nghiệm dự kiến</h3>
+        <h3>5.4 Kết quả thực nghiệm dự kiến</h3>
         <p>Trình bày dưới dạng bảng so sánh các phương án backbone (<code>ResNet50-CBAM</code>, <code>ViT-base</code>, <code>AlignedReID</code>) và biểu đồ độ trễ theo số lượng camera hoạt động đồng thời.</p>
       </div>
       <div class="subsection">
-        <h3>5.4 Phân tích và thảo luận hạn chế</h3>
+        <h3>5.5 Phân tích và thảo luận hạn chế</h3>
         <p>Đánh giá các trường hợp sai như nhận nhầm hoặc mất dấu vết, ảnh hưởng của điều kiện ánh sáng và góc camera, mức độ phụ thuộc vào thiết bị di động ở Lớp 5.</p>
       </div>
     </section>
