@@ -12,6 +12,9 @@ tracking, Re-ID embedding và tìm kiếm vector.
 - Frontend Next.js: đã có Dashboard, Camera, Video, Tìm kiếm và Kết quả.
 - AI Worker: chưa triển khai YOLO, tracking và mô hình Re-ID.
 - Streamlit: đã có bản demo một dịch vụ để triển khai nhanh lên Community Cloud.
+- Demo hiện tại: trang Kết quả có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
+  trình bày tuyến di chuyển trong Campus II Đại học Cần Thơ; dữ liệu này chỉ nằm
+  trên giao diện, không ghi đè kết quả AI trong Supabase.
 
 ## Chạy và public bản Streamlit
 
@@ -178,6 +181,14 @@ Mở `http://127.0.0.1:3000`. Badge phía trên sẽ hiển thị:
 - `query-images`: ảnh người cần tìm.
 - `campus-maps`: sơ đồ khu vực.
 - `raw-detections`: file JSON detection lớn hoặc dữ liệu trung gian.
+
+### Chế độ demo chưa có AI
+
+Vào **Kết quả** trên Streamlit để xem `DEMO-PERSON-001`, tuyến màu đỏ trên lớp
+nền vệ tinh và bảng các mốc thời gian. Tuyến này dùng tọa độ minh họa quanh Campus
+II và không đại diện cho vị trí của người thật. Khi AI Worker được triển khai,
+phần này sẽ chuyển sang đọc `search_results` và `trajectory_points` thật từ
+Supabase.
 
 ## 6. Kiểm tra nhanh khi có lỗi
 

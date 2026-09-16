@@ -8,6 +8,8 @@ from typing import Any
 from uuid import uuid4
 
 import streamlit as st
+import folium
+import leafmap.foliumap as leafmap
 from supabase import Client, create_client
 
 
@@ -19,6 +21,117 @@ st.set_page_config(
 )
 
 MAX_UPLOAD_BYTES = 48 * 1024 * 1024
+
+# Tọa độ trung tâm Campus II, Đại học Cần Thơ. Tuyến bên dưới chỉ phục vụ
+# trình diễn giao diện; không phải dữ liệu định vị hay kết quả AI thật.
+CTU_CAMPUS_CENTER = (10.03183, 105.78380)
+DEMO_ROUTE = [
+    {
+        "sequence": 1,
+        "camera": "CAM-DEMO-01",
+        "area": "Cổng chính Campus II",
+        "time": "08:15:10",
+        "location": (10.03092, 105.78255),
+    },
+    {
+        "sequence": 2,
+        "camera": "MỐC-NỘI-SUY-01",
+        "area": "Trục đường nội khu",
+        "time": "08:16:02",
+        "location": (10.03142, 105.78334),
+    },
+    {
+        "sequence": 3,
+        "camera": "MỐC-NỘI-SUY-02",
+        "area": "Khu giảng đường",
+        "time": "08:17:18",
+        "location": (10.03208, 105.78408),
+    },
+    {
+        "sequence": 4,
+        "camera": "CAM-DEMO-02",
+        "area": "Khuôn viên trung tâm",
+        "time": "08:18:27",
+        "location": (10.03162, 105.78486),
+    },
+]
+
+
+def demo_map() -> leafmap.Map:
+    """Build a satellite map with a clearly labelled simulated trajectory."""
+    route = [item["location"] for item in DEMO_ROUTE]
+    campus_map = leafmap.Map(
+        center=CTU_CAMPUS_CENTER,
+        zoom=17,
+        control_scale=True,
+        draw_control=False,
+        measure_control=False,
+    )
+    campus_map.add_basemap("SATELLITE")
+
+    folium.PolyLine(
+        route,
+        color="#ef4444",
+        weight=6,
+        opacity=0.95,
+        tooltip="Tuyến di chuyển mô phỏng · DEMO-PERSON-001",
+    ).add_to(campus_map)
+
+    for index, point in enumerate(DEMO_ROUTE):
+        color = "green" if index == 0 else "red" if index == len(DEMO_ROUTE) - 1 else "blue"
+        folium.Marker(
+            location=point["location"],
+            tooltip=f"{point['sequence']}. {point['camera']}",
+            popup=(
+                f"<b>{point['camera']}</b><br>"
+                f"{point['area']}<br>Thời gian: {point['time']}<br>"
+                "Dữ liệu mô phỏng"
+            ),
+            icon=folium.Icon(color=color, icon="video-camera", prefix="fa"),
+        ).add_to(campus_map)
+
+    folium.Marker(
+        location=route[-1],
+        tooltip="Vị trí cuối · DEMO-PERSON-001",
+        icon=folium.Icon(color="purple", icon="user", prefix="fa"),
+    ).add_to(campus_map)
+    campus_map.fit_bounds(route, padding=(20, 20))
+    return campus_map
+
+
+def render_demo_results() -> None:
+    """Render a UI-only result until the AI Worker can generate real matches."""
+    st.subheader("Kết quả demo · DEMO-PERSON-001")
+    st.warning(
+        "Đây là kết quả mô phỏng để trình bày luồng sản phẩm. "
+        "Chưa phải kết quả nhận dạng từ AI và không được ghi vào database."
+    )
+
+    metrics = st.columns(4)
+    metrics[0].metric("Độ tương đồng", "92%")
+    metrics[1].metric("Camera đi qua", len(DEMO_ROUTE))
+    metrics[2].metric("Thời lượng", "03:17")
+    metrics[3].metric("Trạng thái", "Demo")
+
+    st.markdown("**Ảnh truy vấn mô phỏng:** người mặc áo xanh — mã `DEMO-PERSON-001`")
+    st.markdown("**Hành trình trong khuôn viên Đại học Cần Thơ (Campus II)**")
+    st.caption(
+        "Lớp nền vệ tinh và tuyến màu đỏ là dữ liệu minh họa. "
+        "Hai marker xanh lá/đỏ là CAM-DEMO-01 và CAM-DEMO-02; hai marker xanh dương "
+        "là mốc nội suy, không phải camera thật."
+    )
+    demo_map().to_streamlit(height=620, add_layer_control=True)
+
+    trajectory_display = [
+        {
+            "Thứ tự": item["sequence"],
+            "Camera": item["camera"],
+            "Khu vực": item["area"],
+            "Thời gian": item["time"],
+        }
+        for item in DEMO_ROUTE
+    ]
+    st.dataframe(trajectory_display, use_container_width=True, hide_index=True)
 
 
 def read_secret(name: str) -> str:
@@ -100,7 +213,8 @@ def dashboard(client: Client) -> None:
 
     st.info(
         "Database và Storage đã sẵn sàng. Phần AI Worker (phát hiện, tracking và "
-        "Re-ID embedding) vẫn cần triển khai để sinh kết quả nhận dạng thực tế."
+        "Re-ID embedding) vẫn cần triển khai để sinh kết quả nhận dạng thực tế. "
+        "Trang Kết quả hiện có sẵn dữ liệu mô phỏng để demo giao diện và hành trình."
     )
 
 
@@ -314,6 +428,9 @@ def search_page(client: Client) -> None:
 
 def results_page(client: Client) -> None:
     st.header("Kết quả")
+    render_demo_results()
+    st.divider()
+    st.subheader("Kết quả từ Supabase")
     try:
         queries = (
             client.table("search_queries")
@@ -343,7 +460,10 @@ def results_page(client: Client) -> None:
         if results:
             st.dataframe(results, use_container_width=True, hide_index=True)
         else:
-            st.info("Chưa có kết quả. AI Worker cần tạo embedding trước.")
+            st.info(
+                "Chưa có kết quả AI trong Supabase. Truy vấn thật vẫn đang pending; "
+                "phần phía trên là dữ liệu demo để xem trước giao diện."
+            )
     except Exception as exc:
         st.error(f"Không đọc được kết quả: {exc}")
 
