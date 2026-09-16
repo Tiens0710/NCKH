@@ -21,6 +21,7 @@ st.set_page_config(
 )
 
 MAX_UPLOAD_BYTES = 48 * 1024 * 1024
+NAVIGATION_ITEMS = ["Tổng quan", "Camera", "Video", "Tìm người", "Kết quả"]
 
 # Tọa độ trung tâm Campus II, Đại học Cần Thơ. Tuyến bên dưới chỉ phục vụ
 # trình diễn giao diện; không phải dữ liệu định vị hay kết quả AI thật.
@@ -184,6 +185,34 @@ def safe_filename(name: str | None, fallback: str) -> str:
     return cleaned[:180] or fallback
 
 
+def navigate_to(page: str) -> None:
+    """Set the sidebar destination from a quick-action button."""
+    st.session_state.navigation = page
+
+
+def apply_ui_theme() -> None:
+    """Add a small, consistent visual layer without changing Streamlit behavior."""
+    st.markdown(
+        """
+        <style>
+        [data-testid="stMetric"] {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.10);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+        }
+        [data-testid="stAlert"] { border-radius: 0.75rem; }
+        div.stButton > button {
+            border-radius: 0.5rem;
+            min-height: 2.5rem;
+        }
+        [data-testid="stSidebar"] hr { margin: 0.75rem 0; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def upload_to_storage(
     client: Client,
     bucket: str,
@@ -200,8 +229,10 @@ def upload_to_storage(
 
 def dashboard(client: Client) -> None:
     st.header("Tổng quan")
+    st.caption("Trang chính · Theo dõi nhanh tình trạng dữ liệu và chọn bước tiếp theo")
     table_names = ["cameras", "videos", "tracklets", "search_queries"]
     labels = ["Camera", "Video", "Tracklet", "Truy vấn"]
+    counts: dict[str, int | str] = {}
     columns = st.columns(4)
     for column, table, label in zip(columns, table_names, labels, strict=True):
         try:
@@ -209,17 +240,48 @@ def dashboard(client: Client) -> None:
             count = response.count if response.count is not None else 0
         except Exception:
             count = "—"
+        counts[label] = count
         column.metric(label, count)
 
     st.info(
-        "Database và Storage đã sẵn sàng. Phần AI Worker (phát hiện, tracking và "
-        "Re-ID embedding) vẫn cần triển khai để sinh kết quả nhận dạng thực tế. "
-        "Trang Kết quả hiện có sẵn dữ liệu mô phỏng để demo giao diện và hành trình."
+        "Database và Storage đã kết nối. Nếu bạn chỉ muốn xem bản trình diễn, "
+        "chọn **Kết quả** ở thanh bên hoặc bấm nút bên dưới."
+    )
+
+    st.subheader("Bắt đầu nhanh")
+    st.caption("Đi theo 4 bước dưới đây khi bạn muốn thử luồng dữ liệu mới.")
+    quick_steps = [
+        ("1", "Camera", "Khai báo vị trí camera", "Mở Camera"),
+        ("2", "Video", "Tải video gắn với camera", "Mở Video"),
+        ("3", "Tìm người", "Tải ảnh để tạo truy vấn", "Tạo truy vấn"),
+        ("4", "Kết quả", "Xem kết quả và hành trình", "Xem kết quả"),
+    ]
+    quick_columns = st.columns(4)
+    for column, (step, title, description, button_label) in zip(
+        quick_columns, quick_steps, strict=True
+    ):
+        with column:
+            st.markdown(f"**Bước {step} · {title}**")
+            st.caption(description)
+            st.button(
+                button_label,
+                key=f"quick_{title}",
+                use_container_width=True,
+                on_click=navigate_to,
+                args=(title,),
+            )
+
+    st.subheader("Trạng thái hiện tại")
+    st.caption(
+        f"Đã có {counts['Camera']} camera, {counts['Video']} video và "
+        f"{counts['Truy vấn']} truy vấn. Tracklet chỉ xuất hiện sau khi AI Worker xử lý."
     )
 
 
 def camera_page(client: Client) -> None:
     st.header("Camera")
+    st.caption("Bước 1 / 4 · Khai báo các điểm quan sát trong khuôn viên")
+    st.info("Tạo camera trước. Mỗi video sau đó sẽ được gắn với một camera cụ thể.")
     with st.expander("Thêm camera", expanded=False):
         with st.form("camera_form", clear_on_submit=True):
             name = st.text_input("Tên camera *")
@@ -272,6 +334,8 @@ def camera_page(client: Client) -> None:
 
 def video_page(client: Client) -> None:
     st.header("Video")
+    st.caption("Bước 2 / 4 · Tải video và gắn vào camera")
+    st.info("Chọn camera, thời gian bắt đầu, chọn file rồi bấm **Tải video lên**.")
     try:
         cameras = (
             client.table("cameras")
@@ -368,7 +432,8 @@ def video_page(client: Client) -> None:
 
 def search_page(client: Client) -> None:
     st.header("Tìm người")
-    st.caption("Tải ảnh rõ toàn thân hoặc nửa người để tạo truy vấn Re-ID.")
+    st.caption("Bước 3 / 4 · Tải ảnh rõ toàn thân hoặc nửa người để tạo truy vấn Re-ID.")
+    st.info("Chọn ảnh, điều chỉnh ngưỡng tương đồng nếu cần, rồi bấm **Tạo truy vấn**.")
     with st.form("search_form", clear_on_submit=True):
         image = st.file_uploader("Ảnh truy vấn", type=["jpg", "jpeg", "png", "webp"])
         threshold = st.slider("Ngưỡng tương đồng", -1.0, 1.0, 0.65, 0.01)
@@ -428,6 +493,7 @@ def search_page(client: Client) -> None:
 
 def results_page(client: Client) -> None:
     st.header("Kết quả")
+    st.caption("Bước 4 / 4 · Xem người được tìm thấy và đường đi qua các mốc camera")
     render_demo_results()
     st.divider()
     st.subheader("Kết quả từ Supabase")
@@ -471,14 +537,19 @@ def results_page(client: Client) -> None:
 def main() -> None:
     require_login()
     client = supabase_client()
+    apply_ui_theme()
 
     with st.sidebar:
         st.title("Outlier Re-ID")
+        st.caption("Bản demo · Campus II Đại học Cần Thơ")
+        st.markdown("**Quy trình sử dụng**")
         page = st.radio(
             "Điều hướng",
-            ["Tổng quan", "Camera", "Video", "Tìm người", "Kết quả"],
+            NAVIGATION_ITEMS,
             label_visibility="collapsed",
+            key="navigation",
         )
+        st.caption("Camera → Video → Tìm người → Kết quả")
         st.divider()
         if st.button("Đăng xuất", use_container_width=True):
             st.session_state.authenticated = False
