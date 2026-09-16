@@ -33,7 +33,7 @@ def read_secret(name: str) -> str:
 def require_login() -> None:
     expected = read_secret("APP_PASSWORD")
     if not expected:
-        st.error("Ứng dụng chưa có APP_PASSWORD trong Streamlit Secrets.")
+        st.error("Ứng dụng chưa có APP_PASSWORD trong biến môi trường hoặc Streamlit Secrets.")
         st.stop()
 
     if st.session_state.get("authenticated"):
@@ -61,7 +61,7 @@ def supabase_client() -> Client:
     url = read_secret("SUPABASE_URL")
     key = read_secret("SUPABASE_SECRET_KEY") or read_secret("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not key:
-        st.error("Thiếu SUPABASE_URL hoặc SUPABASE_SECRET_KEY trong Streamlit Secrets.")
+        st.error("Thiếu SUPABASE_URL hoặc SUPABASE_SECRET_KEY trong biến môi trường hoặc Streamlit Secrets.")
         st.stop()
     return get_client(url, key)
 

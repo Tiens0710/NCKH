@@ -39,6 +39,23 @@ Triển khai trên Streamlit Community Cloud:
 Khóa từng được gửi qua chat phải được thu hồi/rotate trước khi dùng cho bản
 public. Không đưa `SUPABASE_SECRET_KEY` vào source code hoặc biến phía trình duyệt.
 
+### Triển khai Streamlit trên Render
+
+Nếu Streamlit Community Cloud/GitHub OAuth gặp lỗi, có thể dùng Render Web Service
+và kết nối bằng **Public Git Repository** URL `https://github.com/Tiens0710/NCKH`.
+Hướng này không cần liên kết GitHub OAuth, nhưng phải deploy thủ công khi push mã mới.
+
+- Runtime/Language: Python, branch `main`, plan Free để thử nghiệm.
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `streamlit run streamlit_app.py --server.address 0.0.0.0 --server.port $PORT --server.headless true`
+- Health Check Path: `/_stcore/health`
+- Environment Variables: `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `APP_PASSWORD`.
+
+Chỉ lưu giá trị thật trong **Render Dashboard → Environment**, không đưa vào GitHub.
+`SUPABASE_SECRET_KEY` cần là khóa mới sau khi xoay; khóa từng chia sẻ qua chat không
+được dùng cho bản public. Render Free có thể ngủ sau thời gian không truy cập;
+lượt truy cập đầu tiên sau đó sẽ chậm hơn.
+
 ## Luồng kết nối
 
 ```text
