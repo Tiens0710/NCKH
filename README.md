@@ -1,0 +1,211 @@
+# Outlier Re-ID
+
+Hệ thống tìm kiếm và truy vết một người qua nhiều camera bằng phát hiện người,
+tracking, Re-ID embedding và tìm kiếm vector.
+
+## Trạng thái hiện tại
+
+- Supabase project: `wtwjsisqghrqtqhzepci`.
+- PostgreSQL/pgvector: đã tạo 8 bảng và hàm `match_tracklets`.
+- Storage: đã tạo 5 bucket riêng tư.
+- Backend FastAPI: đã có API camera, video, truy vấn và kết quả.
+- Frontend Next.js: đã có Dashboard, Camera, Video, Tìm kiếm và Kết quả.
+- AI Worker: chưa triển khai YOLO, tracking và mô hình Re-ID.
+- Streamlit: đã có bản demo một dịch vụ để triển khai nhanh lên Community Cloud.
+
+## Chạy và public bản Streamlit
+
+Bản Streamlit gọi Supabase trực tiếp từ phía server, vì vậy không cần public
+FastAPI ở giai đoạn demo. Ứng dụng có mật khẩu riêng để tránh mở quyền quản trị
+database cho mọi người trên Internet.
+
+Chạy local:
+
+```powershell
+Copy-Item .streamlit\secrets.toml.example .streamlit\secrets.toml
+# Điền SUPABASE_SECRET_KEY và APP_PASSWORD vào secrets.toml
+python -m streamlit run streamlit_app.py
+```
+
+Triển khai trên Streamlit Community Cloud:
+
+1. Đẩy mã nguồn lên GitHub; không đẩy `.env` hoặc `.streamlit/secrets.toml`.
+2. Tạo app tại `share.streamlit.io`, chọn repo, branch `main` và entrypoint
+   `streamlit_app.py`.
+3. Trong **Advanced settings → Secrets**, dán nội dung theo mẫu
+   `.streamlit/secrets.toml.example` bằng một Supabase secret key mới.
+4. Chọn **Deploy**, rồi đăng nhập bằng `APP_PASSWORD` đã đặt.
+
+Khóa từng được gửi qua chat phải được thu hồi/rotate trước khi dùng cho bản
+public. Không đưa `SUPABASE_SECRET_KEY` vào source code hoặc biến phía trình duyệt.
+
+## Luồng kết nối
+
+```text
+Trình duyệt
+   │
+   │ NEXT_PUBLIC_API_URL (địa chỉ công khai, không phải secret)
+   ▼
+Next.js frontend ──HTTP──> FastAPI backend
+                            │
+                            │ SUPABASE_URL + SUPABASE_SECRET_KEY
+                            ▼
+                    Supabase Database + Storage
+```
+
+Frontend không truy cập database bằng quyền quản trị. Chỉ FastAPI giữ khóa
+`sb_secret_...` và thực hiện các thao tác cần thiết với Supabase.
+
+## 1. Cấu hình Supabase cho backend
+
+Trong PowerShell tại `D:\NCKH`:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Mở `.env` và cấu hình:
+
+```env
+SUPABASE_URL=https://wtwjsisqghrqtqhzepci.supabase.co
+SUPABASE_SECRET_KEY=sb_secret_xxxxxxxxxxxxxxxxx
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+MAX_UPLOAD_BYTES=50331648
+```
+
+Lấy `sb_secret_...` tại **Supabase Dashboard → Project Settings → API Keys**.
+Nếu project chỉ có khóa cũ, có thể dùng tạm:
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+```
+
+Chỉ khai báo một trong hai khóa quản trị. Không commit `.env`, không gửi khóa
+qua chat và không đặt khóa này trong biến bắt đầu bằng `NEXT_PUBLIC_`.
+
+## 2. Chạy backend
+
+Các dependency Python đã được ghim trong `requirements.txt`.
+
+```powershell
+Set-Location D:\NCKH
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn backend.app.main:app --reload
+```
+
+Kiểm tra backend:
+
+- `http://127.0.0.1:8000/health` — kiểm tra FastAPI.
+- `http://127.0.0.1:8000/health/supabase` — kiểm tra database thật.
+- `http://127.0.0.1:8000/docs` — Swagger để thử API.
+
+Kết nối thành công khi `/health/supabase` trả về:
+
+```json
+{"status":"ok","database":"connected"}
+```
+
+## 3. Cấu hình và chạy frontend
+
+Mở một cửa sổ PowerShell khác:
+
+```powershell
+Set-Location D:\NCKH\frontend
+Copy-Item .env.local.example .env.local
+npm install
+npm run dev
+```
+
+Nội dung `frontend/.env.local` khi chạy local:
+
+```env
+NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+```
+
+Mở `http://127.0.0.1:3000`. Badge phía trên sẽ hiển thị:
+
+- **Đã cấu hình Supabase**: FastAPI đã nhận được khóa quản trị.
+- **Chưa nối Supabase**: FastAPI chạy nhưng thiếu khóa trong `.env`.
+- **API ngoại tuyến**: frontend không gọi được FastAPI.
+
+## 4. API frontend đang sử dụng
+
+| Chức năng | Endpoint FastAPI |
+| --- | --- |
+| Danh sách camera | `GET /api/cameras` |
+| Thêm camera | `POST /api/cameras` |
+| Danh sách video | `GET /api/videos` |
+| Upload video | `POST /api/videos/upload` |
+| Tạo truy vấn từ ảnh | `POST /api/searches` |
+| Đối sánh vector 512 chiều | `POST /api/searches/{id}/match` |
+| Đọc kết quả và hành trình | `GET /api/searches/{id}` |
+
+## 5. Dữ liệu được lưu ở đâu?
+
+### PostgreSQL
+
+- `cameras`: camera, khu vực, tọa độ, RTSP URL và `metadata` JSONB.
+- `videos`: đường dẫn Storage, thời gian, trạng thái và `metadata` JSONB.
+- `tracklets`: đoạn xuất hiện của một người và `attributes` JSONB.
+- `tracklet_embeddings`: vector Re-ID 512 chiều.
+- `search_queries`: ảnh truy vấn, bộ lọc JSONB và vector truy vấn.
+- `search_results`: kết quả xếp hạng theo similarity.
+- `trajectory_points`: hành trình theo camera và thời gian.
+
+### Supabase Storage
+
+- `raw-videos`: video gốc.
+- `person-crops`: ảnh crop người.
+- `query-images`: ảnh người cần tìm.
+- `campus-maps`: sơ đồ khu vực.
+- `raw-detections`: file JSON detection lớn hoặc dữ liệu trung gian.
+
+## 6. Kiểm tra nhanh khi có lỗi
+
+### Frontend báo “Chưa nối Supabase”
+
+Kiểm tra có tệp `D:\NCKH\.env` và đã điền `SUPABASE_SECRET_KEY`. Sau đó khởi
+động lại FastAPI vì biến môi trường chỉ được đọc khi ứng dụng khởi động.
+
+### Frontend báo “API ngoại tuyến”
+
+Kiểm tra FastAPI đang chạy ở cổng 8000 và `NEXT_PUBLIC_API_URL` trỏ đúng địa chỉ.
+
+### Trình duyệt báo lỗi CORS
+
+Thêm origin của frontend vào `CORS_ORIGINS`, ví dụ:
+
+```env
+CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+```
+
+Sau đó khởi động lại backend.
+
+### Upload video thất bại
+
+Phiên bản hiện tại giới hạn 48 MB và dùng standard upload. Video dài nên được
+đưa vào Storage bằng resumable upload hoặc qua AI Worker.
+
+## 7. Triển khai sau này
+
+- Next.js frontend: Vercel.
+- FastAPI backend: Render, Railway hoặc Cloud Run.
+- Database, vector và file: Supabase.
+- AI Worker: máy có GPU hoặc dịch vụ GPU riêng.
+
+Khi triển khai, đặt `NEXT_PUBLIC_API_URL` trên Vercel thành URL HTTPS của FastAPI,
+đặt `SUPABASE_SECRET_KEY` ở biến môi trường của backend và thêm domain Vercel vào
+`CORS_ORIGINS`.
+
+## Cấu trúc chính
+
+```text
+D:\NCKH
+├── backend\            # FastAPI và Supabase client
+├── frontend\           # Next.js App Router
+├── .env.example        # Mẫu biến môi trường backend
+├── requirements.txt    # Dependency Python đã ghim
+└── README.md            # Tài liệu này
+```
