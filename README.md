@@ -12,7 +12,8 @@ tracking, Re-ID embedding và tìm kiếm vector.
 - Frontend Next.js: đã có Dashboard, Camera, Video, Tìm kiếm và Kết quả.
 - `render.yaml`: cấu hình hai Web Service độc lập trên Render — Next.js frontend
   và FastAPI backend — dùng hostname private giữa hai service.
-- AI Worker: chưa triển khai YOLO, tracking và mô hình Re-ID.
+- AI Worker: đã có bước phát hiện người bằng RetinaNet chạy riêng trên CPU;
+  tracking và Re-ID chưa triển khai. Xem `backend/README.md` để chạy worker.
 - Streamlit: đã có bản demo một dịch vụ để triển khai nhanh lên Community Cloud.
 - Demo hiện tại: trang Kết quả có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
   trình bày tuyến di chuyển trong Campus II Đại học Cần Thơ; dữ liệu này chỉ nằm
@@ -204,13 +205,12 @@ Mở `http://127.0.0.1:3000`. Badge phía trên sẽ hiển thị:
 - `campus-maps`: sơ đồ khu vực.
 - `raw-detections`: file JSON detection lớn hoặc dữ liệu trung gian.
 
-### Chế độ demo chưa có AI
+### Chế độ demo hành trình
 
 Vào **Kết quả** trên Streamlit để xem `DEMO-PERSON-001`, tuyến màu đỏ trên lớp
 nền vệ tinh và bảng các mốc thời gian. Tuyến này dùng tọa độ minh họa quanh Campus
-II và không đại diện cho vị trí của người thật. Khi AI Worker được triển khai,
-phần này sẽ chuyển sang đọc `search_results` và `trajectory_points` thật từ
-Supabase.
+II và không đại diện cho vị trí của người thật. RetinaNet hiện chỉ tạo khung
+bao người trên từng frame; hành trình thật vẫn cần tracking và Re-ID.
 
 ## 6. Kiểm tra nhanh khi có lỗi
 
@@ -243,9 +243,10 @@ Phiên bản hiện tại giới hạn 48 MB và dùng standard upload. Video d�
 - Next.js frontend: Vercel.
 - FastAPI backend: Render, Railway hoặc Cloud Run.
 - Database, vector và file: Supabase.
-- AI Worker: máy có GPU hoặc dịch vụ GPU riêng.
+- AI Worker RetinaNet: chạy trên máy cá nhân hoặc dịch vụ xử lý riêng;
+  không chạy trong Render API free.
 
-Khi triển khai, đặt `NEXT_PUBLIC_API_URL` trên Vercel thành URL HTTPS của FastAPI,
+Khi triển khai, đặt `BACKEND_INTERNAL_URL` trên Vercel thành URL HTTPS của FastAPI,
 đặt `SUPABASE_SECRET_KEY` ở biến môi trường của backend và thêm domain Vercel vào
 `CORS_ORIGINS`.
 

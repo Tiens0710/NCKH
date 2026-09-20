@@ -23,6 +23,15 @@ export default function VideosPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [selectedVideoId, setSelectedVideoId] = useState<string | null>(null);
+  const selectedVideo = videos.find((video) => video.id === selectedVideoId);
+  const selectedDetection = selectedVideo?.metadata?.detection as {
+    model?: string;
+    score_threshold?: number;
+    frames_sampled?: number;
+    frames_with_people?: number;
+    person_boxes?: number;
+  } | undefined;
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -104,8 +113,15 @@ export default function VideosPage() {
       <section className="panel data-panel">
         <div className="panel-heading"><div><p className="section-kicker">Kho dữ liệu</p><h2>Video đã tải lên</h2></div><span className="record-count">{videos.length} bản ghi</span></div>
         {loading ? <LoadingRows /> : videos.length === 0 ? <EmptyState title="Chưa có video" description="Video đầu tiên sẽ xuất hiện tại đây sau khi upload." /> : (
-          <div className="table-wrap"><table><thead><tr><th>Tệp</th><th>Camera</th><th>Thời gian</th><th>Trạng thái</th></tr></thead><tbody>{videos.map((video) => <tr key={video.id}><td><strong>{String(video.metadata?.original_filename ?? "Video")}</strong><small>{video.storage_path}</small></td><td>{video.cameras?.name ?? "—"}</td><td>{formatDate(video.started_at)}</td><td><StatusBadge status={video.status} /></td></tr>)}</tbody></table></div>
+          <div className="table-wrap"><table><thead><tr><th>Tệp</th><th>Camera</th><th>Thời gian</th><th>Trạng thái</th><th>Phát hiện người</th></tr></thead><tbody>{videos.map((video) => {
+            const detection = video.metadata?.detection as { status?: string; person_boxes?: number; frames_with_people?: number } | undefined;
+            return <tr key={video.id}><td><strong>{String(video.metadata?.original_filename ?? "Video")}</strong><small>{video.storage_path}</small></td><td>{video.cameras?.name ?? "—"}</td><td>{formatDate(video.started_at)}</td><td>{detection?.status === "completed" ? "Phát hiện xong" : <StatusBadge status={video.status} />}</td><td>{detection?.status === "completed" ? <button type="button" className="text-link detection-open" aria-expanded={selectedVideoId === video.id} onClick={() => setSelectedVideoId(selectedVideoId === video.id ? null : video.id)}>{detection.person_boxes ?? 0} khung bao · Xem tóm tắt</button> : detection?.status === "processing" ? "Đang phát hiện…" : detection?.status === "failed" ? "Phát hiện thất bại" : "Chưa xử lý"}</td></tr>;
+          })}</tbody></table></div>
         )}
+        {selectedVideo && selectedDetection ? <div className="detection-detail" aria-live="polite">
+          <h3>Kết quả RetinaNet</h3>
+          <p>Mô hình {selectedDetection.model ?? "RetinaNet"} đã kiểm tra {selectedDetection.frames_sampled ?? 0} khung hình; {selectedDetection.frames_with_people ?? 0} khung có người; {selectedDetection.person_boxes ?? 0} khung bao vượt ngưỡng {Math.round((selectedDetection.score_threshold ?? 0.6) * 100)}%. Số khung bao không phải số người riêng biệt. JSON chi tiết được lưu trong bucket riêng tư <code>raw-detections</code>.</p>
+        </div> : null}
       </section>
     </>
   );

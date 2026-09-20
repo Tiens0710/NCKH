@@ -35,7 +35,10 @@ export default function DashboardPage() {
     };
   }, []);
 
-  const completed = videos.filter((video) => video.status === "completed").length;
+  const detected = videos.filter((video) => {
+    const detection = video.metadata?.detection as { status?: string } | undefined;
+    return detection?.status === "completed";
+  }).length;
   const activeCameras = cameras.filter((camera) => camera.is_active).length;
 
   return (
@@ -56,8 +59,8 @@ export default function DashboardPage() {
 
       <section className="metric-grid" aria-label="Chỉ số hệ thống">
         <Metric label="Camera hoạt động" value={loading ? "—" : String(activeCameras)} note={`${cameras.length} camera đã khai báo`} icon={<Camera />} />
-        <Metric label="Video gần đây" value={loading ? "—" : String(videos.length)} note={`${completed} đã xử lý xong`} icon={<FileVideo />} />
-        <Metric label="Mô hình Re-ID" value="512D" note="Vector cosine · HNSW" icon={<Radar />} />
+        <Metric label="Video gần đây" value={loading ? "—" : String(videos.length)} note={`${detected} đã phát hiện người`} icon={<FileVideo />} />
+        <Metric label="Mô hình Re-ID" value="Chưa chạy" note="Đang chờ tracking và embedding" icon={<Radar />} />
       </section>
 
       <div className="dashboard-grid">
