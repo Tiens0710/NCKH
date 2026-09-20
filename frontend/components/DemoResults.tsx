@@ -13,8 +13,11 @@ import {
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
+import { RouteGraph } from "@/components/RouteGraph";
 import { DEMO_QUERY, DEMO_ROUTE } from "@/lib/demo";
+import type { DemoRoutePoint } from "@/lib/demo";
 
 const CampusMap = dynamic(
   () => import("@/components/CampusMap").then((module) => module.CampusMap),
@@ -25,6 +28,24 @@ const CampusMap = dynamic(
 );
 
 export function DemoResults() {
+  const [selectedSequence, setSelectedSequence] = useState(1);
+  const [filter, setFilter] = useState<"all" | DemoRoutePoint["kind"]>("all");
+  const selectedPoint = DEMO_ROUTE.find((point) => point.sequence === selectedSequence) ?? DEMO_ROUTE[0];
+
+  function changeFilter(nextFilter: "all" | DemoRoutePoint["kind"]) {
+    setFilter(nextFilter);
+    if (nextFilter !== "all" && selectedPoint.kind !== nextFilter) {
+      const firstMatch = DEMO_ROUTE.find((point) => point.kind === nextFilter);
+      if (firstMatch) setSelectedSequence(firstMatch.sequence);
+    }
+  }
+
+  function selectPoint(sequence: number) {
+    const point = DEMO_ROUTE.find((item) => item.sequence === sequence);
+    if (point && filter !== "all" && point.kind !== filter) setFilter("all");
+    setSelectedSequence(sequence);
+  }
+
   return (
     <>
       <PageHeader
@@ -70,6 +91,13 @@ export function DemoResults() {
       </div>
 
       <div className="demo-results-layout">
+        <RouteGraph
+          points={DEMO_ROUTE}
+          selectedSequence={selectedSequence}
+          filter={filter}
+          onSelect={selectPoint}
+          onFilterChange={changeFilter}
+        />
         <section className="panel demo-map-panel">
           <div className="panel-heading">
             <div>
@@ -78,7 +106,7 @@ export function DemoResults() {
             </div>
             <span className="map-mode-label"><Route size={15} aria-hidden="true" />Vệ tinh</span>
           </div>
-          <CampusMap points={DEMO_ROUTE} />
+          <CampusMap points={DEMO_ROUTE} selectedSequence={selectedSequence} onSelect={selectPoint} />
           <div className="map-legend" aria-label="Chú giải bản đồ">
             <span><i className="legend-dot legend-camera" />Camera thật</span>
             <span><i className="legend-dot legend-interpolated" />Mốc nội suy</span>
@@ -86,7 +114,7 @@ export function DemoResults() {
           </div>
         </section>
 
-        <aside className="panel demo-trajectory-panel">
+        <section className="panel demo-trajectory-panel">
           <div className="panel-heading">
             <div>
               <p className="section-kicker">Dòng thời gian</p>
@@ -94,21 +122,24 @@ export function DemoResults() {
             </div>
             <Clock3 size={18} aria-hidden="true" />
           </div>
+          <p className="demo-selection-summary" role="status">
+            Đang xem: <strong>{selectedPoint.camera}</strong> · {selectedPoint.area} · {selectedPoint.time}
+          </p>
           <ol className="demo-trajectory-list">
             {DEMO_ROUTE.map((point, index) => (
-              <li key={point.sequence}>
+              <li key={point.sequence} className={point.sequence === selectedSequence ? "is-selected" : ""}>
                 <span className={`demo-step-dot ${point.kind === "interpolated" ? "is-interpolated" : ""} ${index === DEMO_ROUTE.length - 1 ? "is-last" : ""}`}>
                   {point.sequence}
                 </span>
-                <div>
+                <button type="button" className="demo-timeline-button" aria-pressed={point.sequence === selectedSequence} onClick={() => selectPoint(point.sequence)}>
                   <strong>{point.camera}</strong>
                   <span><MapPinned size={13} aria-hidden="true" />{point.area}</span>
                   <small>{point.time} · {point.kind === "camera" ? "Camera" : "Nội suy"}</small>
-                </div>
+                </button>
               </li>
             ))}
           </ol>
-        </aside>
+        </section>
       </div>
 
       <section className="demo-footnote panel">

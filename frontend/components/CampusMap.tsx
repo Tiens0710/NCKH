@@ -9,7 +9,7 @@ import {
   useMap,
 } from "react-leaflet";
 import type { LatLngBoundsExpression, LatLngExpression } from "leaflet";
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { DemoRoutePoint } from "@/lib/demo";
 
 const CAMPUS_CENTER: LatLngExpression = [10.03183, 105.7838];
@@ -25,8 +25,24 @@ function FitRoute({ points }: { points: LatLngExpression[] }) {
   return null;
 }
 
-export function CampusMap({ points }: { points: DemoRoutePoint[] }) {
-  const positions = points.map((point) => [point.lat, point.lng] as LatLngExpression);
+function FocusSelectedPoint({ point }: { point: DemoRoutePoint | undefined }) {
+  const map = useMap();
+  const initialRender = useRef(true);
+
+  useEffect(() => {
+    if (initialRender.current) {
+      initialRender.current = false;
+      return;
+    }
+    if (point) map.panTo([point.lat, point.lng], { animate: true });
+  }, [map, point]);
+
+  return null;
+}
+
+export function CampusMap({ points, selectedSequence, onSelect }: { points: DemoRoutePoint[]; selectedSequence: number; onSelect: (sequence: number) => void }) {
+  const positions = useMemo(() => points.map((point) => [point.lat, point.lng] as LatLngExpression), [points]);
+  const selectedPoint = points.find((point) => point.sequence === selectedSequence);
 
   return (
     <div className="campus-map-frame" aria-label="Bản đồ vệ tinh tuyến đường demo Campus II">
@@ -51,17 +67,19 @@ export function CampusMap({ points }: { points: DemoRoutePoint[] }) {
         {points.map((point, index) => {
           const isCamera = point.kind === "camera";
           const isLast = index === points.length - 1;
+          const isSelected = point.sequence === selectedSequence;
           return (
             <CircleMarker
               key={`${point.camera}-${point.sequence}`}
               center={[point.lat, point.lng]}
-              radius={isLast ? 9 : 7}
+              radius={isSelected ? 12 : isLast ? 9 : 7}
               pathOptions={{
-                color: isLast ? "#7c3aed" : isCamera ? "#15803d" : "#2563eb",
+                color: isSelected ? "#ffffff" : isLast ? "#7c3aed" : isCamera ? "#15803d" : "#2563eb",
                 fillColor: isLast ? "#a855f7" : isCamera ? "#22c55e" : "#60a5fa",
                 fillOpacity: 0.95,
-                weight: 3,
+                weight: isSelected ? 5 : 3,
               }}
+              eventHandlers={{ click: () => onSelect(point.sequence) }}
             >
               <Popup>
                 <strong>{point.camera}</strong>
@@ -74,6 +92,7 @@ export function CampusMap({ points }: { points: DemoRoutePoint[] }) {
           );
         })}
         <FitRoute points={positions} />
+        <FocusSelectedPoint point={selectedPoint} />
       </MapContainer>
       <span className="campus-map-label">Dữ liệu mô phỏng · lớp nền vệ tinh</span>
     </div>
