@@ -124,22 +124,28 @@ def process_video(client: Client, video: dict[str, Any], detector: tuple[Any, An
 def main() -> None:
     parser = argparse.ArgumentParser(description="Detect people in uploaded videos with RetinaNet")
     parser.add_argument("--once", action="store_true", help="Process one pending video and exit")
+    parser.add_argument("--drain", action="store_true", help="Process pending videos and exit when the queue is empty")
+    parser.add_argument("--max-jobs", type=int, default=20, help="Maximum videos to process in --drain mode")
     parser.add_argument("--video-id", help="Process a specific pending video UUID")
     parser.add_argument("--retry-failed", action="store_true", help="Retry a failed --video-id")
     parser.add_argument("--poll-seconds", type=float, default=15.0)
     parser.add_argument("--score-threshold", type=float, default=0.6)
     parser.add_argument("--sample-seconds", type=float, default=1.0)
     parser.add_argument("--max-frames", type=int, default=120)
+    parser.add_argument("--max-image-side", type=int, default=960)
     args = parser.parse_args()
-    if args.poll_seconds <= 0 or (args.retry_failed and not args.video_id):
-        parser.error("--poll-seconds must be positive and --retry-failed requires --video-id")
-    options = DetectionOptions(args.score_threshold, args.sample_seconds, args.max_frames)
+    if args.poll_seconds <= 0 or args.max_jobs < 1 or (args.retry_failed and not args.video_id):
+        parser.error("--poll-seconds and --max-jobs must be positive; --retry-failed requires --video-id")
+    if args.once and args.drain:
+        parser.error("Choose either --once or --drain")
+    options = DetectionOptions(args.score_threshold, args.sample_seconds, args.max_frames, args.max_image_side)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     signal.signal(signal.SIGINT, request_stop)
     if hasattr(signal, "SIGTERM"):
         signal.signal(signal.SIGTERM, request_stop)
     client = make_client()
     detector = None
+    processed = 0
     while not STOP:
         video = claim_video(client, args.video_id, args.retry_failed)
         if video:
@@ -153,7 +159,8 @@ def main() -> None:
                     client.table("videos").update({"status": "pending", "metadata": metadata}).eq("id", video["id"]).eq("status", "processing").execute()
                     raise
             process_video(client, video, detector, options)
-        if args.once or args.video_id:
+            processed += 1
+        if args.once or args.video_id or (args.drain and (not video or processed >= args.max_jobs)):
             if not video:
                 LOGGER.info("No eligible video found")
             return

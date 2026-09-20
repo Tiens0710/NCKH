@@ -243,8 +243,8 @@ Phiên bản hiện tại giới hạn 48 MB và dùng standard upload. Video d�
 - Next.js frontend: Vercel.
 - FastAPI backend: Render, Railway hoặc Cloud Run.
 - Database, vector và file: Supabase.
-- AI Worker RetinaNet: chạy trên máy cá nhân hoặc dịch vụ xử lý riêng;
-  không chạy trong Render API free.
+- AI Worker RetinaNet: có thể chạy trên máy cá nhân hoặc Render Cron Job
+  (xử lý video chờ theo lịch, có tính phí); không chạy trong Render API free.
 
 Khi triển khai, đặt `BACKEND_INTERNAL_URL` trên Vercel thành URL HTTPS của FastAPI,
 đặt `SUPABASE_SECRET_KEY` ở biến môi trường của backend và thêm domain Vercel vào

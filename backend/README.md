@@ -76,22 +76,36 @@ video, one known video, or keep polling while this computer is on:
 ```powershell
 .\.venv\Scripts\python.exe -m backend.ai.worker --once
 .\.venv\Scripts\python.exe -m backend.ai.worker --video-id VIDEO_UUID --once
+.\.venv\Scripts\python.exe -m backend.ai.worker --drain
 .\.venv\Scripts\python.exe -m backend.ai.worker
 ```
 
 Use `--video-id VIDEO_UUID --retry-failed --once` after fixing a failed job.
 The first run downloads approximately 146 MB of official model weights. The
 default samples one frame per second (at most 120 frames) and keeps person
-boxes with confidence >= 0.6. You can adjust `--sample-seconds`,
-`--max-frames`, and `--score-threshold`. These boxes are detections, not unique
+boxes with confidence >= 0.6. Frames are resized to a maximum side of 960 px
+for bounded memory use; box coordinates are converted back to the original
+video dimensions. You can adjust `--sample-seconds`, `--max-frames`,
+`--max-image-side`, and `--score-threshold`. These boxes are detections, not unique
 people. The synthetic `test_data` videos may legitimately return zero boxes.
 
 `GET /api/videos` exposes only aggregate counts. Full per-frame coordinates
 remain in private Storage. Add user authentication and authorization before
 exposing footage or detailed detections through the public API.
 
-For an always-on server worker, use a paid Render background worker or another
-compute host. The current free Render API service does not run this AI process.
+On Render, a Cron Job can run `python -m backend.ai.worker --drain` every 10
+minutes to process queued videos without an always-on worker. Use a 2 GB / 1 CPU
+plan, Python 3.12.14, and set `SUPABASE_URL` plus the secret
+`SUPABASE_SECRET_KEY` on that job only. Set `TORCH_HOME=.cache/torch` and build
+with:
+
+```sh
+pip install -r backend/requirements-ai.txt && python -c "from backend.ai.retinanet import load_detector; load_detector()"
+```
+
+This fetches model weights during the build. Do not add the secret to Git or
+the browser.
+The current free Render API service does not run this AI process.
 The remaining pipeline must add tracking and 512-dimensional Re-ID embeddings
 to `tracklets` and `tracklet_embeddings` before the matching API can return
 real identities or trajectories.

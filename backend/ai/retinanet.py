@@ -16,12 +16,13 @@ class DetectionOptions:
     score_threshold: float = 0.6
     sample_seconds: float = 1.0
     max_frames: int = 120
+    max_image_side: int = 960
 
     def __post_init__(self) -> None:
         if not 0 < self.score_threshold <= 1:
             raise ValueError("score_threshold must be in (0, 1]")
-        if self.sample_seconds <= 0 or self.max_frames < 1:
-            raise ValueError("sample_seconds and max_frames must be positive")
+        if self.sample_seconds <= 0 or self.max_frames < 1 or self.max_image_side < 320:
+            raise ValueError("sample_seconds/max_frames must be positive and max_image_side >= 320")
 
 
 def load_detector() -> tuple[Any, Any, int, Any]:
@@ -66,6 +67,11 @@ def detect_video(
             if not ok:
                 break
             if frame_index % frame_step == 0:
+                original_height, original_width = frame.shape[:2]
+                scale = min(1.0, options.max_image_side / max(original_width, original_height))
+                if scale < 1.0:
+                    frame = cv2.resize(frame, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+                resized_height, resized_width = frame.shape[:2]
                 image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 tensor = transform(image)
                 with torch.inference_mode():
@@ -80,7 +86,10 @@ def detect_video(
                         continue
                     boxes.append({
                         "score": round(float(score), 4),
-                        "xyxy": [round(float(value), 2) for value in box],
+                        "xyxy": [
+                            round(float(value) * (original_width / resized_width if index % 2 == 0 else original_height / resized_height), 2)
+                            for index, value in enumerate(box)
+                        ],
                     })
                 frames.append({
                     "frame_index": frame_index,
@@ -100,6 +109,7 @@ def detect_video(
         "weights": MODEL_VERSION,
         "score_threshold": options.score_threshold,
         "sample_seconds": options.sample_seconds,
+        "max_image_side": options.max_image_side,
         "width": width,
         "height": height,
         "fps": round(fps, 3),
