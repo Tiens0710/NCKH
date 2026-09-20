@@ -86,7 +86,8 @@ default samples one frame per second (at most 120 frames) and keeps person
 boxes with confidence >= 0.6. Frames are resized to a maximum side of 960 px
 for bounded memory use; box coordinates are converted back to the original
 video dimensions. You can adjust `--sample-seconds`, `--max-frames`,
-`--max-image-side`, and `--score-threshold`. These boxes are detections, not unique
+`--max-image-side`, `--score-threshold`, and `--device` (`cpu`, `cuda`, or `auto`).
+These boxes are detections, not unique
 people. The synthetic `test_data` videos may legitimately return zero boxes.
 
 `GET /api/videos` exposes only aggregate counts. Full per-frame coordinates

@@ -14,6 +14,9 @@ tracking, Re-ID embedding và tìm kiếm vector.
   và FastAPI backend — dùng hostname private giữa hai service.
 - AI Worker: đã có bước phát hiện người bằng RetinaNet chạy riêng trên CPU;
   tracking và Re-ID chưa triển khai. Xem `backend/README.md` để chạy worker.
+- Kaggle Notebook: `notebooks/retinanet_kaggle.ipynb` chạy RetinaNet thủ công
+  khi cần, có thể dùng GPU của Kaggle. Đây là AI batch worker, không thay thế
+  FastAPI đang phục vụ API web.
 - Streamlit: đã có bản demo một dịch vụ để triển khai nhanh lên Community Cloud.
 - Demo hiện tại: trang Kết quả có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
   trình bày tuyến di chuyển trong Campus II Đại học Cần Thơ; dữ liệu này chỉ nằm

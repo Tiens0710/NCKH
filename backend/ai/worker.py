@@ -95,6 +95,7 @@ def process_video(client: Client, video: dict[str, Any], detector: tuple[Any, An
             "stage": "retinanet_person_detection",
             "status": "completed",
             "model": result["model"],
+            "device": result["device"],
             "score_threshold": result["score_threshold"],
             "frames_sampled": result["frames_sampled"],
             "frames_with_people": result["frames_with_people"],
@@ -133,6 +134,7 @@ def main() -> None:
     parser.add_argument("--sample-seconds", type=float, default=1.0)
     parser.add_argument("--max-frames", type=int, default=120)
     parser.add_argument("--max-image-side", type=int, default=960)
+    parser.add_argument("--device", choices=("cpu", "cuda", "auto"), default="cpu")
     args = parser.parse_args()
     if args.poll_seconds <= 0 or args.max_jobs < 1 or (args.retry_failed and not args.video_id):
         parser.error("--poll-seconds and --max-jobs must be positive; --retry-failed requires --video-id")
@@ -151,7 +153,7 @@ def main() -> None:
         if video:
             if detector is None:
                 try:
-                    detector = load_detector()
+                    detector = load_detector(args.device)
                 except Exception:
                     LOGGER.exception("Unable to load RetinaNet; leaving video available for retry")
                     metadata = dict(video.get("metadata") or {})

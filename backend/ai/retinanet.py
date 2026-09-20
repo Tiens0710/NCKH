@@ -25,17 +25,24 @@ class DetectionOptions:
             raise ValueError("sample_seconds/max_frames must be positive and max_image_side >= 320")
 
 
-def load_detector() -> tuple[Any, Any, int, Any]:
+def load_detector(device: str = "cpu") -> tuple[Any, Any, int, Any]:
     import torch
     from torchvision.models.detection import (
         RetinaNet_ResNet50_FPN_V2_Weights,
         retinanet_resnet50_fpn_v2,
     )
 
-    torch.set_num_threads(2)
+    if device not in {"cpu", "cuda", "auto"}:
+        raise ValueError("device must be cpu, cuda, or auto")
+    if device == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    if device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA was requested but is not available")
+    if device == "cpu":
+        torch.set_num_threads(2)
     weights = RetinaNet_ResNet50_FPN_V2_Weights.COCO_V1
     person_label = weights.meta["categories"].index("person")
-    model = retinanet_resnet50_fpn_v2(weights=weights).eval().to("cpu")
+    model = retinanet_resnet50_fpn_v2(weights=weights).eval().to(device)
     return model, weights.transforms(), person_label, torch
 
 
@@ -48,6 +55,7 @@ def detect_video(
     from PIL import Image
 
     model, transform, person_label, torch = detector or load_detector()
+    model_device = next(model.parameters()).device
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise ValueError("Unable to open uploaded video")
@@ -75,7 +83,7 @@ def detect_video(
                 image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 tensor = transform(image)
                 with torch.inference_mode():
-                    prediction = model([tensor])[0]
+                    prediction = model([tensor.to(model_device)])[0]
                 boxes = []
                 for label, score, box in zip(
                     prediction["labels"].tolist(),
@@ -107,6 +115,7 @@ def detect_video(
         "schema_version": 1,
         "model": MODEL_NAME,
         "weights": MODEL_VERSION,
+        "device": str(model_device),
         "score_threshold": options.score_threshold,
         "sample_seconds": options.sample_seconds,
         "max_image_side": options.max_image_side,
