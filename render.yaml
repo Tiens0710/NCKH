@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: outlier-reid-api
+    runtime: python
+    region: singapore
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: SUPABASE_URL
+        value: https://wtwjsisqghrqtqhzepci.supabase.co
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        value: https://outlier-reid-web.onrender.com
+      - key: MAX_UPLOAD_BYTES
+        value: "50331648"
+
+  - type: web
+    name: outlier-reid-web
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeployTrigger: commit
+    envVars:
+      - key: BACKEND_INTERNAL_URL
+        fromService:
+          type: web
+          name: outlier-reid-api
+          property: hostport
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"

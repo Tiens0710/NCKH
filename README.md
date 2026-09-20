@@ -10,11 +10,17 @@ tracking, Re-ID embedding và tìm kiếm vector.
 - Storage: đã tạo 5 bucket riêng tư.
 - Backend FastAPI: đã có API camera, video, truy vấn và kết quả.
 - Frontend Next.js: đã có Dashboard, Camera, Video, Tìm kiếm và Kết quả.
+- `render.yaml`: cấu hình hai Web Service độc lập trên Render — Next.js frontend
+  và FastAPI backend — dùng hostname private giữa hai service.
 - AI Worker: chưa triển khai YOLO, tracking và mô hình Re-ID.
 - Streamlit: đã có bản demo một dịch vụ để triển khai nhanh lên Community Cloud.
 - Demo hiện tại: trang Kết quả có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
   trình bày tuyến di chuyển trong Campus II Đại học Cần Thơ; dữ liệu này chỉ nằm
   trên giao diện, không ghi đè kết quả AI trong Supabase.
+- Tài liệu nghiên cứu: `baibao/boutlier.html` chứa đề cương, kiến trúc 6 lớp và
+  sơ đồ data flow; Dashboard Next.js hiển thị bản tóm tắt kiến trúc này ở trang
+  Tổng quan. Trang bài báo có thể double-click vào đoạn văn để sửa, thêm/xóa
+  đoạn và lưu bản nháp bằng `localStorage` của trình duyệt.
 
 ## Chạy và public bản Streamlit
 
@@ -58,6 +64,21 @@ Chỉ lưu giá trị thật trong **Render Dashboard → Environment**, không 
 `SUPABASE_SECRET_KEY` cần là khóa mới sau khi xoay; khóa từng chia sẻ qua chat không
 được dùng cho bản public. Render Free có thể ngủ sau thời gian không truy cập;
 lượt truy cập đầu tiên sau đó sẽ chậm hơn.
+
+### Triển khai Next.js + FastAPI trên Render
+
+Blueprint `render.yaml` đã sẵn sàng cho frontend và backend. Sau khi mã nguồn đã
+được push lên GitHub:
+
+1. Mở Render Dashboard → **New → Blueprint** và chọn repository này.
+2. Xác nhận hai service `outlier-reid-api` và `outlier-reid-web`.
+3. Điền `SUPABASE_SECRET_KEY` trong Environment của `outlier-reid-api`; không
+   đưa khóa này vào GitHub hoặc biến `NEXT_PUBLIC_*`.
+4. Bấm **Apply**. Frontend gọi `/api/*` cùng origin; Next.js proxy nội bộ tới
+   FastAPI nên trình duyệt không cần biết hostname private của backend.
+
+Render Free có thể sleep khi không có truy cập. `render.yaml` đã đặt health check
+cho `/health` và build frontend bằng `npm ci && npm run build`.
 
 ## Luồng kết nối
 
@@ -141,7 +162,8 @@ npm run dev
 Nội dung `frontend/.env.local` khi chạy local:
 
 ```env
-NEXT_PUBLIC_API_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_API_URL=
+BACKEND_INTERNAL_URL=http://127.0.0.1:8000
 ```
 
 Mở `http://127.0.0.1:3000`. Badge phía trên sẽ hiển thị:

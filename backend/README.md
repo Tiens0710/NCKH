@@ -1,0 +1,64 @@
+# Outlier Re-ID backend
+
+FastAPI is the trusted layer between the application and Supabase. The browser
+must never receive the Supabase secret or legacy `service_role` key.
+
+This first version is intended for local development. Before exposing it to the
+internet, add Supabase Auth/JWT validation to the `/api/*` routes so an unknown
+client cannot use the backend's privileged database access.
+
+## 1. Configure
+
+From the project root (`D:\NCKH`):
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Open `.env` and replace `replace-with-your-sb-secret-key` with the project's
+`sb_secret_...` key from **Supabase Dashboard > Project Settings > API Keys**.
+The backend also accepts `SUPABASE_SERVICE_ROLE_KEY` as a legacy fallback.
+Do not commit or paste this secret into frontend JavaScript.
+
+## 2. Install and run
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn backend.app.main:app --reload
+```
+
+Open `http://127.0.0.1:8000/docs` to call and inspect the API.
+
+## Main endpoints
+
+- `GET /health`: backend status; works before the Supabase key is configured.
+- `GET /health/supabase`: verifies the real database connection.
+- `GET/POST/PATCH /api/cameras`: camera management.
+- `GET /api/videos`: video records.
+- `POST /api/videos/upload`: upload a short video to `raw-videos` and save its metadata.
+- `POST /api/searches`: upload a query image to `query-images` and create a search job.
+- `POST /api/searches/{query_id}/match`: search using a 512-dimensional Re-ID vector.
+- `GET /api/searches/{query_id}`: query, ranked results, and trajectory points.
+
+The current Supabase bucket limit is 50 MB. This starter endpoint reads an upload
+into memory and caps it at 48 MB. For long surveillance videos, use TUS resumable
+uploads or ingest video directly from the camera/worker instead of routing the
+whole file through this API.
+
+## Where JSON is stored
+
+- `cameras.metadata`: camera configuration and optional extra fields.
+- `videos.metadata`: original filename, MIME type, size, and processing details.
+- `tracklets.attributes`: clothing/color/pose and detector attributes.
+- `search_queries.filters`: search filters and query-image metadata.
+
+Large JSON exports should be stored as files in `raw-detections`; keep their
+Storage path and summary fields in Postgres.
+
+## Next processing step
+
+The matching endpoint expects a 512-value embedding. The AI worker still needs to
+be added to run person detection, tracking, Re-ID feature extraction, and then
+insert `tracklets` plus `tracklet_embeddings` before matching can return results.
