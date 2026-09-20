@@ -43,8 +43,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Radar size={23} strokeWidth={1.8} />
           </span>
           <span>
-            <strong>OUTLIER</strong>
-            <small>RE-ID CONTROL</small>
+            <strong>NCKH</strong>
+            <small>OUTLIER RE-ID</small>
           </span>
         </div>
 

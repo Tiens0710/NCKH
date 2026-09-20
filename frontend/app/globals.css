@@ -20,7 +20,7 @@
 
 * { box-sizing: border-box; }
 html { background: var(--canvas); }
-body { margin: 0; color: var(--ink); background: var(--canvas); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+body { margin: 0; color: var(--ink); background: var(--canvas); font-family: Aptos, "Segoe UI Variable", "Segoe UI", "Helvetica Neue", Arial, sans-serif; font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
 button, input, select { font: inherit; }
 button, a { -webkit-tap-highlight-color: transparent; }
 a { color: inherit; text-decoration: none; }
@@ -63,7 +63,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .page-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; margin-bottom: 1.75rem; }
 .eyebrow, .section-kicker { margin: 0 0 .45rem; color: var(--accent); font-size: .68rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
 h1, h2, p { margin-top: 0; }
-h1 { max-width: 760px; margin-bottom: .45rem; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 3.2vw, 3.35rem); font-weight: 500; line-height: 1.02; letter-spacing: -.035em; }
+h1 { max-width: 760px; margin-bottom: .45rem; font-family: inherit; font-size: clamp(2rem, 3.2vw, 3.35rem); font-weight: 750; line-height: 1.04; letter-spacing: -.04em; }
 h2 { margin-bottom: .35rem; font-size: 1rem; line-height: 1.3; }
 .page-description { max-width: 690px; margin-bottom: 0; color: var(--ink-soft); font-size: .91rem; line-height: 1.6; }
 .button { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: .55rem; padding: .65rem .9rem; border: 1px solid transparent; border-radius: var(--radius-sm); cursor: pointer; font-size: .82rem; font-weight: 750; transition: transform .15s ease, background .15s ease; }
@@ -98,7 +98,7 @@ h2 { margin-bottom: .35rem; font-size: 1rem; line-height: 1.3; }
 .metric-icon svg { width: 21px; }
 .metric p, .metric small, .metric strong { display: block; }
 .metric p { margin: 0 0 .2rem; color: var(--ink-soft); font-size: .72rem; font-weight: 650; }
-.metric strong { font-family: Georgia, "Times New Roman", serif; font-size: 2rem; font-weight: 500; line-height: 1; }
+.metric strong { font-size: 2rem; font-weight: 750; line-height: 1; font-variant-numeric: tabular-nums; }
 .metric small { margin-top: .35rem; color: #718087; font-size: .68rem; }
 .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(260px, .7fr); gap: 1rem; }
 .system-panel { padding: 1.25rem; }
@@ -229,7 +229,7 @@ td small { max-width: 380px; margin-top: .2rem; color: #7b898e; overflow: hidden
 .match-main strong, .match-main span { display: flex; align-items: center; gap: .3rem; }
 .match-main strong { font-size: .75rem; }
 .match-main span { margin-top: .25rem; color: var(--ink-soft); font-size: .65rem; }
-.score { color: var(--accent-dark); font-family: Georgia, "Times New Roman", serif; font-size: 1.2rem; font-weight: 500; }
+.score { color: var(--accent-dark); font-size: 1.2rem; font-weight: 750; font-variant-numeric: tabular-nums; }
 .trajectory-list { padding-top: .4rem; }
 .trajectory-list li { position: relative; display: flex; gap: .75rem; padding: .65rem 0 .9rem; }
 .trajectory-list li:not(:last-child)::after { content: ""; position: absolute; left: 13px; top: 34px; bottom: -4px; width: 1px; background: var(--line); }
@@ -242,7 +242,7 @@ td small { max-width: 380px; margin-top: .2rem; color: #7b898e; overflow: hidden
 .demo-metric { min-width: 0; padding: 1rem 1.1rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow); }
 .demo-metric span, .demo-metric strong, .demo-metric small { display: block; }
 .demo-metric span { color: var(--ink-soft); font-size: .68rem; font-weight: 700; }
-.demo-metric strong { margin-top: .4rem; color: var(--accent-dark); font-family: Georgia, "Times New Roman", serif; font-size: 1.8rem; font-weight: 500; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.demo-metric strong { margin-top: .4rem; color: var(--accent-dark); font-size: 1.8rem; font-weight: 750; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .demo-metric small { margin-top: .45rem; color: #7b898e; font-size: .63rem; line-height: 1.35; }
 .demo-metric.is-compact strong { font-family: inherit; font-size: 1.05rem; font-weight: 800; }
 .demo-query-strip { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding: .8rem 1rem; }

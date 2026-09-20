@@ -5,8 +5,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Outlier Re-ID Control",
-    template: "%s · Outlier Re-ID",
+    default: "NCKH · Outlier Re-ID",
+    template: "%s · NCKH",
   },
   description: "Giao diện quản lý và truy vết người trên hệ thống đa camera.",
 };
