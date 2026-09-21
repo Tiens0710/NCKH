@@ -10,9 +10,11 @@ và sẽ tự ngủ khi không có truy cập.
    bước import này cần bạn thực hiện.
 2. Trong Settings của Notebook, bật **Internet**. Có thể chọn **GPU** nếu tài
    khoản được cấp GPU; Notebook cũng chạy được bằng CPU.
-3. Vào **Add-ons → Secrets**, tạo secret tên `SUPABASE_SECRET_KEY` với giá trị
-   khóa `sb_secret_...` của dự án Supabase, rồi gắn secret đó với Notebook.
-   Không dán khóa vào ô mã, không chia sẻ ảnh chụp màn hình chứa khóa.
+3. Ở ô thứ hai, khi Notebook hỏi khóa, dán `sb_secret_...` của dự án Supabase
+   rồi nhấn Enter. Ô nhập ẩn ký tự và không lưu khóa trong file Notebook.
+   Nếu muốn khỏi nhập lại, có thể lưu khóa dưới tên `SUPABASE_SECRET_KEY`
+   trong **Add-ons → Secrets** và gắn nó với Notebook. Không ghi khóa cố định
+   vào ô mã, không chia sẻ ảnh chụp màn hình chứa khóa.
 4. Trên web, thêm camera và upload video có người thật (tối đa 48 MB). Sau đó
    trở lại Kaggle, bấm **Run All**. Notebook lấy tối đa 20 video trạng thái
    `pending`, lưu JSON chi tiết trong bucket riêng tư `raw-detections` và cập
