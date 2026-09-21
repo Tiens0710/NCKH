@@ -18,6 +18,9 @@ tracking, Re-ID embedding và tìm kiếm vector.
   khi cần, có thể dùng GPU của Kaggle. Đây là AI batch worker, không thay thế
   FastAPI đang phục vụ API web.
 - Streamlit: đã có bản demo một dịch vụ để triển khai nhanh lên Community Cloud.
+- Trang Video của Streamlit có sẵn video mẫu `people-detection.mp4`: có thể xem tự
+  động trong trình duyệt hoặc bấm **Dùng video mẫu này cho pipeline AI** để tạo một
+  video `pending` trong Supabase, sau đó chạy Kaggle Worker.
 - Demo hiện tại: trang Kết quả có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
   trình bày tuyến di chuyển trong Campus II Đại học Cần Thơ; dữ liệu này chỉ nằm
   trên giao diện, không ghi đè kết quả AI trong Supabase.

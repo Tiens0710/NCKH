@@ -5,6 +5,7 @@ import os
 import re
 from datetime import datetime, timezone
 from typing import Any
+from urllib.request import Request, urlopen
 from uuid import uuid4
 
 import streamlit as st
@@ -22,6 +23,18 @@ st.set_page_config(
 
 MAX_UPLOAD_BYTES = 48 * 1024 * 1024
 NAVIGATION_ITEMS = ["Tổng quan", "Camera", "Video", "Tìm người", "Kết quả"]
+DEMO_VIDEO_PRESETS = {
+    "people-detection.mp4 · Người đi bộ": {
+        "key": "people-detection",
+        "url": "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/people-detection.mp4",
+        "filename": "people-detection.mp4",
+        "content_type": "video/mp4",
+        "fps": 30,
+        "width": 1920,
+        "height": 1080,
+        "description": "Video mẫu công khai có người đi bộ, dùng để thử RetinaNet.",
+    },
+}
 
 # Tọa độ trung tâm Campus II, Đại học Cần Thơ. Tuyến bên dưới chỉ phục vụ
 # trình diễn giao diện; không phải dữ liệu định vị hay kết quả AI thật.
@@ -227,6 +240,18 @@ def upload_to_storage(
     )
 
 
+def download_demo_video(url: str) -> bytes:
+    """Download a small, allow-listed demo clip without trusting its size."""
+    request = Request(url, headers={"User-Agent": "Outlier-ReID-demo/1.0"})
+    with urlopen(request, timeout=60) as response:
+        content = response.read(MAX_UPLOAD_BYTES + 1)
+    if len(content) > MAX_UPLOAD_BYTES:
+        raise ValueError("Video mẫu vượt quá giới hạn 48 MB.")
+    if not content:
+        raise ValueError("Video mẫu không có dữ liệu.")
+    return content
+
+
 def dashboard(client: Client) -> None:
     st.header("Tổng quan")
     st.caption("Trang chính · Theo dõi nhanh tình trạng dữ liệu và chọn bước tiếp theo")
@@ -335,7 +360,10 @@ def camera_page(client: Client) -> None:
 def video_page(client: Client) -> None:
     st.header("Video")
     st.caption("Bước 2 / 4 · Tải video và gắn vào camera")
-    st.info("Chọn camera, thời gian bắt đầu, chọn file rồi bấm **Tải video lên**.")
+    st.info(
+        "Bạn có thể chọn video mẫu có sẵn để xem ngay hoặc đưa thẳng vào hàng chờ AI; "
+        "video cá nhân vẫn tải bằng biểu mẫu bên dưới."
+    )
     try:
         cameras = (
             client.table("cameras")
@@ -356,6 +384,83 @@ def video_page(client: Client) -> None:
             f"{item['name']} — {item.get('area') or 'chưa có khu vực'}": item["id"]
             for item in cameras
         }
+
+        st.subheader("Video mẫu có sẵn")
+        preset_label = st.selectbox(
+            "Chọn video mẫu",
+            list(DEMO_VIDEO_PRESETS),
+            help="Video được lấy từ một kho mẫu công khai để bạn không cần tải file thủ công.",
+        )
+        preset = DEMO_VIDEO_PRESETS[preset_label]
+        st.caption(preset["description"])
+        autoplay = st.checkbox(
+            "Tự động phát video mẫu (đã tắt tiếng)",
+            value=True,
+            key="demo_video_autoplay",
+        )
+        st.video(
+            preset["url"],
+            format=preset["content_type"],
+            autoplay=autoplay,
+            muted=autoplay,
+            loop=False,
+        )
+        preset_camera = st.selectbox(
+            "Camera cho video mẫu",
+            list(camera_labels),
+            key="demo_video_camera",
+        )
+        if st.button(
+            "Dùng video mẫu này cho pipeline AI",
+            type="primary",
+            use_container_width=True,
+            key="use_demo_video",
+        ):
+            started_utc = datetime.now(timezone.utc)
+            storage_path = (
+                f"{camera_labels[preset_camera]}/{started_utc:%Y/%m/%d}/"
+                f"{uuid4()}-{preset['filename']}"
+            )
+            try:
+                with st.spinner("Đang lấy video mẫu và lưu vào Supabase..."):
+                    content = download_demo_video(preset["url"])
+                    upload_to_storage(
+                        client,
+                        "raw-videos",
+                        storage_path,
+                        content,
+                        preset["content_type"],
+                    )
+                    row = {
+                        "camera_id": camera_labels[preset_camera],
+                        "storage_path": storage_path,
+                        "started_at": started_utc.isoformat(),
+                        "fps": preset["fps"],
+                        "width": preset["width"],
+                        "height": preset["height"],
+                        "status": "pending",
+                        "metadata": {
+                            "original_filename": preset["filename"],
+                            "content_type": preset["content_type"],
+                            "size_bytes": len(content),
+                            "source": "built-in-demo",
+                            "preset_key": preset["key"],
+                        },
+                    }
+                    try:
+                        client.table("videos").insert(row).execute()
+                    except Exception:
+                        client.storage.from_("raw-videos").remove([storage_path])
+                        raise
+                st.success(
+                    "Đã thêm video mẫu vào hàng chờ. Chạy Kaggle Worker để RetinaNet xử lý."
+                )
+            except Exception as exc:
+                st.error(f"Không thể thêm video mẫu: {exc}")
+
+        st.divider()
+        st.subheader("Tải video của bạn")
+        st.caption("Chọn camera, thời gian bắt đầu, chọn file rồi bấm **Tải video lên**.")
         with st.form("video_upload", clear_on_submit=True):
             selected = st.selectbox("Camera", list(camera_labels))
             started_at = st.datetime_input("Thời gian bắt đầu", value=datetime.now())
