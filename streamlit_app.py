@@ -360,6 +360,8 @@ def camera_page(client: Client) -> None:
 def video_page(client: Client) -> None:
     st.header("Video")
     st.caption("Bước 2 / 4 · Tải video và gắn vào camera")
+    if notice := st.session_state.pop("demo_video_notice", None):
+        st.success(notice)
     st.info(
         "Bạn có thể chọn video mẫu có sẵn để xem ngay hoặc đưa thẳng vào hàng chờ AI; "
         "video cá nhân vẫn tải bằng biểu mẫu bên dưới."
@@ -393,6 +395,10 @@ def video_page(client: Client) -> None:
         )
         preset = DEMO_VIDEO_PRESETS[preset_label]
         st.caption(preset["description"])
+        st.caption(
+            "Nút bên dưới sẽ lưu video vào Supabase với trạng thái **pending**. "
+            "Sau đó cần chạy Kaggle Worker để RetinaNet chuyển sang **completed**."
+        )
         autoplay = st.checkbox(
             "Tự động phát video mẫu (đã tắt tiếng)",
             value=True,
@@ -411,7 +417,7 @@ def video_page(client: Client) -> None:
             key="demo_video_camera",
         )
         if st.button(
-            "Dùng video mẫu này cho pipeline AI",
+            "Thêm video mẫu vào hàng chờ AI",
             type="primary",
             use_container_width=True,
             key="use_demo_video",
@@ -448,13 +454,17 @@ def video_page(client: Client) -> None:
                         },
                     }
                     try:
-                        client.table("videos").insert(row).execute()
+                        inserted = client.table("videos").insert(row).execute()
                     except Exception:
                         client.storage.from_("raw-videos").remove([storage_path])
                         raise
-                st.success(
-                    "Đã thêm video mẫu vào hàng chờ. Chạy Kaggle Worker để RetinaNet xử lý."
+                    inserted_row = (inserted.data or [{}])[0]
+                st.session_state["demo_video_notice"] = (
+                    "Đã thêm video mẫu vào hàng chờ AI với trạng thái pending. "
+                    "Mở Kaggle Worker và chạy notebook để RetinaNet xử lý. "
+                    f"Mã video: {inserted_row.get('id', 'không xác định')}"
                 )
+                st.rerun()
             except Exception as exc:
                 st.error(f"Không thể thêm video mẫu: {exc}")
 
