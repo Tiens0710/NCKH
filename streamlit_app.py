@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hmac
+import json
 import os
 import re
 from datetime import datetime, timezone
@@ -114,7 +115,7 @@ def demo_map() -> leafmap.Map:
 
 
 def render_demo_results() -> None:
-    """Render a UI-only result until the AI Worker can generate real matches."""
+    """Render the optional UI-only Re-ID route demonstration."""
     st.subheader("Kết quả demo · DEMO-PERSON-001")
     st.warning(
         "Đây là kết quả mô phỏng để trình bày luồng sản phẩm. "
@@ -146,6 +147,145 @@ def render_demo_results() -> None:
         for item in DEMO_ROUTE
     ]
     st.dataframe(trajectory_display, use_container_width=True, hide_index=True)
+
+
+def _camera_details(video: dict[str, Any]) -> dict[str, Any]:
+    """Normalize the nested camera relation returned by Supabase."""
+    camera = video.get("cameras") or {}
+    if isinstance(camera, list):
+        camera = camera[0] if camera else {}
+    return camera if isinstance(camera, dict) else {}
+
+
+def _download_storage_object(client: Client, bucket: str, path: str) -> bytes:
+    """Download a private Storage object through the server-side Supabase key."""
+    content = client.storage.from_(bucket).download(path)
+    return content if isinstance(content, bytes) else bytes(content)
+
+
+def render_live_detection_results(client: Client) -> None:
+    """Render the actual RetinaNet output written by the Kaggle Worker."""
+    st.subheader("Kết quả RetinaNet từ video đã xử lý")
+    st.caption(
+        "Dữ liệu bên dưới được đọc từ bảng videos và file JSON trong Storage, "
+        "không còn là số liệu demo."
+    )
+    try:
+        videos = (
+            client.table("videos")
+            .select(
+                "id,camera_id,storage_path,started_at,fps,width,height,status,metadata,created_at,cameras(name,area)"
+            )
+            .eq("status", "completed")
+            .order("created_at", desc=True)
+            .limit(50)
+            .execute()
+            .data
+        )
+    except Exception as exc:
+        st.error(f"Không đọc được video đã xử lý: {exc}")
+        return
+
+    processed_videos: list[dict[str, Any]] = []
+    for video in videos:
+        metadata = video.get("metadata") or {}
+        detection = metadata.get("detection") or {}
+        if detection.get("status") == "completed" and detection.get("storage_path"):
+            video["_detection"] = detection
+            processed_videos.append(video)
+
+    if not processed_videos:
+        st.info(
+            "Chưa có video RetinaNet hoàn tất. Hãy thêm video mẫu, chạy Kaggle Worker "
+            "rồi tải lại trang này."
+        )
+        return
+
+    def option_label(video: dict[str, Any]) -> str:
+        camera = _camera_details(video)
+        detection = video["_detection"]
+        filename = (video.get("metadata") or {}).get("original_filename", "video")
+        return (
+            f"{video.get('started_at', '—')} · {camera.get('name') or video.get('camera_id', '—')} · "
+            f"{filename} · {detection.get('person_boxes', 0)} khung bao · {str(video['id'])[:8]}"
+        )
+
+    labels = [option_label(video) for video in processed_videos]
+    selected_label = st.selectbox(
+        "Chọn video đã có kết quả",
+        labels,
+        key="processed_video_result",
+    )
+    video = processed_videos[labels.index(selected_label)]
+    detection = video["_detection"]
+    camera = _camera_details(video)
+    metadata = video.get("metadata") or {}
+
+    metrics = st.columns(5)
+    metrics[0].metric("Khung bao người", detection.get("person_boxes", 0))
+    metrics[1].metric("Frame đã lấy mẫu", detection.get("frames_sampled", 0))
+    metrics[2].metric("Frame có người", detection.get("frames_with_people", 0))
+    metrics[3].metric("Mô hình", detection.get("model", "RetinaNet"))
+    metrics[4].metric("Thiết bị", detection.get("device", "—"))
+
+    st.success(
+        f"Đã xử lý xong video tại {camera.get('name') or video.get('camera_id', 'camera chưa xác định')}. "
+        f"Ngưỡng phát hiện: {float(detection.get('score_threshold', 0.0)):.0%}."
+    )
+    st.caption(
+        "Một khung bao là một người được phát hiện trong một frame; "
+        "không phải số người duy nhất. RetinaNet hiện phát hiện người, chưa thực hiện Re-ID hoặc định vị GPS."
+    )
+
+    with st.expander("Video đầu vào", expanded=True):
+        try:
+            video_bytes = _download_storage_object(client, "raw-videos", video["storage_path"])
+            st.video(
+                video_bytes,
+                format=metadata.get("content_type") or "video/mp4",
+            )
+        except Exception as exc:
+            st.warning(f"Không phát được video gốc từ Storage: {exc}")
+
+    detection_payload: dict[str, Any] | None = None
+    with st.expander("Bounding box theo từng frame", expanded=True):
+        try:
+            detection_bytes = _download_storage_object(
+                client,
+                "raw-detections",
+                detection["storage_path"],
+            )
+            detection_payload = json.loads(detection_bytes.decode("utf-8"))
+        except Exception as exc:
+            st.warning(f"Không đọc được JSON RetinaNet: {exc}")
+
+        if detection_payload:
+            rows: list[dict[str, Any]] = []
+            for frame in detection_payload.get("frames", []):
+                for person_box in frame.get("detections", []):
+                    box = person_box.get("xyxy") or [None, None, None, None]
+                    rows.append(
+                        {
+                            "Frame": frame.get("frame_index"),
+                            "Thời gian (giây)": frame.get("time_seconds"),
+                            "Độ tin cậy": f"{float(person_box.get('score', 0.0)):.1%}",
+                            "X1": box[0],
+                            "Y1": box[1],
+                            "X2": box[2],
+                            "Y2": box[3],
+                        }
+                    )
+            if rows:
+                st.dataframe(rows, use_container_width=True, hide_index=True)
+            else:
+                st.info("Không có bounding box người trong các frame đã lấy mẫu.")
+            st.download_button(
+                "Tải JSON kết quả RetinaNet",
+                data=json.dumps(detection_payload, ensure_ascii=False, indent=2),
+                file_name=f"retinanet-{video['id']}.json",
+                mime="application/json",
+                key=f"download_detection_{video['id']}",
+            )
 
 
 def read_secret(name: str) -> str:
@@ -608,10 +748,13 @@ def search_page(client: Client) -> None:
 
 def results_page(client: Client) -> None:
     st.header("Kết quả")
-    st.caption("Bước 4 / 4 · Xem người được tìm thấy và đường đi qua các mốc camera")
-    render_demo_results()
+    st.caption("Bước 4 / 4 · Xem kết quả RetinaNet và các đối sánh Re-ID")
+    render_live_detection_results(client)
     st.divider()
-    st.subheader("Kết quả từ Supabase")
+    with st.expander("Kết quả demo Re-ID và bản đồ mô phỏng", expanded=False):
+        render_demo_results()
+    st.divider()
+    st.subheader("Kết quả truy vấn Re-ID từ Supabase")
     try:
         queries = (
             client.table("search_queries")
