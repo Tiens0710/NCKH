@@ -17,12 +17,6 @@ function isSafeArticleHtml(value) {
   return !/(<\s*script\b|<\s*(iframe|object|embed|form)\b|javascript\s*:|\bon[a-z]+\s*=)/i.test(value);
 }
 
-function isAuthorized(req) {
-  const configuredToken = process.env.ARTICLE_EDITOR_TOKEN;
-  const suppliedToken = req.headers["x-article-editor-token"];
-  return Boolean(configuredToken && suppliedToken && suppliedToken === configuredToken);
-}
-
 async function supabaseRequest(path, options = {}) {
   const { url, key } = getSupabaseConfig();
   if (!url || !key) {
@@ -60,7 +54,7 @@ async function supabaseRequest(path, options = {}) {
 module.exports = async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, X-Article-Editor-Token");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "GET, PUT, DELETE, OPTIONS");
 
   if (req.method === "OPTIONS") return res.status(204).end();
@@ -77,7 +71,6 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method === "DELETE") {
-      if (!isAuthorized(req)) return json(res, 401, { error: "Thiếu hoặc sai mã chỉnh sửa" });
       await supabaseRequest(`article_documents?slug=eq.${encodeURIComponent(ARTICLE_SLUG)}`, {
         method: "DELETE",
         headers: { Prefer: "return=minimal" },
@@ -86,7 +79,6 @@ module.exports = async function handler(req, res) {
     }
 
     if (req.method !== "PUT") return json(res, 405, { error: "Method không được hỗ trợ" });
-    if (!isAuthorized(req)) return json(res, 401, { error: "Thiếu hoặc sai mã chỉnh sửa" });
 
     const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body || {};
     const contentHtml = typeof body.content_html === "string" ? body.content_html : "";

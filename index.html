@@ -526,29 +526,6 @@
     font-size: 12px;
     line-height: 1.5;
   }
-  .inline-editor-token {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-    color: var(--ink-soft);
-    font-size: 12px;
-    font-weight: 600;
-  }
-  .inline-editor-token input {
-    width: min(280px, 100%);
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 7px 9px;
-    background: #fff;
-    color: var(--ink);
-    font: inherit;
-    font-size: 12px;
-  }
-  .inline-editor-token input:focus-visible {
-    outline: 3px solid rgba(37, 99, 235, 0.2);
-    outline-offset: 1px;
-  }
   .content.editor-mode h1,
   .content.editor-mode h2,
   .content.editor-mode h3,
@@ -609,16 +586,12 @@
       <div class="inline-editor-head">
         <div>
           <div class="inline-editor-title">Chỉnh sửa bài báo</div>
-          <p class="inline-editor-help">Double-click vào một đoạn để sửa. Sau khi bật chỉnh sửa, click vào đoạn bất kỳ để chọn đoạn đó. Bản nháp được lưu dùng chung trên database.</p>
+          <p class="inline-editor-help">Bấm bật chỉnh sửa rồi click vào đoạn bất kỳ để sửa. Bản nháp được lưu dùng chung trên database.</p>
         </div>
         <span class="inline-editor-status" id="inline-editor-status" role="status" aria-live="polite">Chế độ xem</span>
       </div>
-      <label class="inline-editor-token" for="inline-editor-token">
-        Mã chỉnh sửa
-        <input id="inline-editor-token" type="password" autocomplete="off" placeholder="Nhập mã do quản trị viên cấp">
-      </label>
       <div class="inline-editor-actions">
-        <button class="inline-editor-btn primary" id="inline-edit-toggle" type="button">✎ Bật chỉnh sửa</button>
+        <button class="inline-editor-btn primary" id="inline-edit-toggle" type="button">✎ Sửa nội dung</button>
         <button class="inline-editor-btn" id="inline-add-block" type="button" disabled>＋ Thêm văn bản</button>
         <button class="inline-editor-btn danger" id="inline-delete-block" type="button" disabled>🗑 Xóa đoạn</button>
         <button class="inline-editor-btn" id="inline-save" type="button" disabled>💾 Lưu bản nháp</button>
@@ -1086,7 +1059,6 @@
   // the article editor syncs the canonical copy to Supabase through /api/article.
   const ARTICLE_API_URL = '/api/article?slug=outlier-reid';
   const ARTICLE_CACHE_KEY = 'thesis_inline_content_v1';
-  const ARTICLE_TOKEN_KEY = 'article_editor_token';
   let remoteArticleDocument = null;
   const defaultNotes = [
     {
@@ -1219,7 +1191,6 @@
   const inlineContent = document.querySelector('.content');
   const inlineEditorPanel = document.getElementById('inline-editor-panel');
   const inlineEditorStatus = document.getElementById('inline-editor-status');
-  const inlineEditorToken = document.getElementById('inline-editor-token');
   const inlineEditToggle = document.getElementById('inline-edit-toggle');
   const inlineAddBlock = document.getElementById('inline-add-block');
   const inlineDeleteBlock = document.getElementById('inline-delete-block');
@@ -1227,13 +1198,6 @@
   const inlineReset = document.getElementById('inline-reset');
   const inlineEditableSelector = 'h1, h2, h3, p, figcaption, .db-table-header, .db-table-field, .ui-panel-label';
   const inlineEditorState = { enabled: false, activeBlock: null, dirty: false };
-
-  if (inlineEditorToken) {
-    inlineEditorToken.value = sessionStorage.getItem(ARTICLE_TOKEN_KEY) || '';
-    inlineEditorToken.addEventListener('input', () => {
-      sessionStorage.setItem(ARTICLE_TOKEN_KEY, inlineEditorToken.value.trim());
-    });
-  }
 
   function setInlineStatus(message, state = 'view') {
     if (!inlineEditorStatus) return;
@@ -1243,7 +1207,7 @@
 
   function updateInlineEditorButtons() {
     const hasActiveBlock = Boolean(inlineEditorState.activeBlock);
-    if (inlineEditToggle) inlineEditToggle.textContent = inlineEditorState.enabled ? '✓ Đang chỉnh sửa' : '✎ Bật chỉnh sửa';
+    if (inlineEditToggle) inlineEditToggle.textContent = inlineEditorState.enabled ? '✓ Đang chỉnh sửa' : '✎ Sửa nội dung';
     if (inlineAddBlock) inlineAddBlock.disabled = !inlineEditorState.enabled || !hasActiveBlock;
     if (inlineDeleteBlock) inlineDeleteBlock.disabled = !inlineEditorState.enabled || !hasActiveBlock;
     if (inlineSave) inlineSave.disabled = !inlineEditorState.dirty;
@@ -1309,10 +1273,6 @@
 
   const originalInlineArticleMarkup = getInlineArticleMarkup();
 
-  function getEditorToken() {
-    return (inlineEditorToken?.value || sessionStorage.getItem(ARTICLE_TOKEN_KEY) || '').trim();
-  }
-
   function cacheInlineArticle(markup, notes) {
     localStorage.setItem(ARTICLE_CACHE_KEY, markup);
     if (Array.isArray(notes)) localStorage.setItem('thesis_notes', JSON.stringify(notes));
@@ -1359,12 +1319,6 @@
 
   async function saveInlineEdits() {
     if (!inlineContent) return;
-    const token = getEditorToken();
-    if (!token) {
-      setInlineStatus('Hãy nhập mã chỉnh sửa trước khi lưu', 'warning');
-      inlineEditorToken?.focus();
-      return;
-    }
 
     stopInlineBlockEditing();
     const markup = getInlineArticleMarkup();
@@ -1375,8 +1329,7 @@
       const response = await fetch(ARTICLE_API_URL, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'X-Article-Editor-Token': token
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ content_html: markup, notes })
       });
@@ -1432,18 +1385,11 @@
 
   async function resetInlineEdits() {
     if (inlineEditorState.dirty && !window.confirm('Khôi phục nội dung gốc và bỏ các thay đổi chưa lưu?')) return;
-    const token = getEditorToken();
     if (remoteArticleDocument) {
-      if (!token) {
-        setInlineStatus('Nhập mã chỉnh sửa để khôi phục database', 'warning');
-        inlineEditorToken?.focus();
-        return;
-      }
       if (!window.confirm('Xóa bản nháp đang lưu trên database và khôi phục nội dung gốc?')) return;
       try {
         const response = await fetch(ARTICLE_API_URL, {
           method: 'DELETE',
-          headers: { 'X-Article-Editor-Token': token }
         });
         if (!response.ok) throw new Error('Delete failed');
         remoteArticleDocument = null;
