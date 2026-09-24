@@ -24,10 +24,32 @@ tracking, Re-ID embedding và tìm kiếm vector.
 - Demo hiện tại: trang Kết quả có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
   trình bày tuyến di chuyển trong Campus II Đại học Cần Thơ; dữ liệu này chỉ nằm
   trên giao diện, không ghi đè kết quả AI trong Supabase.
-- Tài liệu nghiên cứu: `baibao/boutlier.html` chứa đề cương, kiến trúc 6 lớp và
-  sơ đồ data flow; Dashboard Next.js hiển thị bản tóm tắt kiến trúc này ở trang
-  Tổng quan. Trang bài báo có thể double-click vào đoạn văn để sửa, thêm/xóa
-  đoạn và lưu bản nháp bằng `localStorage` của trình duyệt.
+- Tài liệu nghiên cứu: `index.html` (bản public tại Vercel) và bản sao
+  `baibao/boutlier.html` chứa đề cương, kiến trúc 6 lớp và sơ đồ data flow.
+  Trang bài báo có thể double-click vào đoạn văn để sửa, thêm/xóa đoạn. Bản
+  nháp dùng chung được lưu ở bảng Supabase `article_documents`; `localStorage`
+  chỉ còn là cache dự phòng khi API tạm thời không truy cập được.
+
+### Lưu nội dung bài báo trên Supabase
+
+Bảng `public.article_documents` đã được tạo bằng migration
+`supabase/migrations/20260924000000_create_article_documents.sql`. Trang public
+gọi API serverless `/api/article`, vì vậy khóa quản trị Supabase không đi vào
+trình duyệt.
+
+Trong Vercel Project → Settings → Environment Variables, thêm các biến cho
+Production (và Preview nếu cần):
+
+```text
+SUPABASE_URL=https://wtwjsisqghrqtqhzepci.supabase.co
+SUPABASE_SECRET_KEY=<khóa sb_secret mới>
+ARTICLE_EDITOR_TOKEN=<một mã chỉnh sửa dài, ngẫu nhiên>
+```
+
+Sau khi deploy, mở trang bài báo, nhập `ARTICLE_EDITOR_TOKEN` vào ô **Mã chỉnh
+sửa**, bật chỉnh sửa và bấm **Lưu bản nháp**. Nội dung và ghi chú sẽ được
+upsert vào Supabase; nút **Khôi phục gốc** sẽ xóa bản nháp database sau khi
+xác nhận. Không commit các giá trị thật vào GitHub.
 
 ## Chạy và public bản Streamlit
 

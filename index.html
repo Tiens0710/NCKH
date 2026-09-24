@@ -526,6 +526,29 @@
     font-size: 12px;
     line-height: 1.5;
   }
+  .inline-editor-token {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    color: var(--ink-soft);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .inline-editor-token input {
+    width: min(280px, 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 7px 9px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+  }
+  .inline-editor-token input:focus-visible {
+    outline: 3px solid rgba(37, 99, 235, 0.2);
+    outline-offset: 1px;
+  }
   .content.editor-mode h1,
   .content.editor-mode h2,
   .content.editor-mode h3,
@@ -586,10 +609,14 @@
       <div class="inline-editor-head">
         <div>
           <div class="inline-editor-title">Chỉnh sửa bài báo</div>
-          <p class="inline-editor-help">Double-click vào một đoạn để sửa. Sau khi bật chỉnh sửa, click vào đoạn bất kỳ để chọn đoạn đó.</p>
+          <p class="inline-editor-help">Double-click vào một đoạn để sửa. Sau khi bật chỉnh sửa, click vào đoạn bất kỳ để chọn đoạn đó. Bản nháp được lưu dùng chung trên database.</p>
         </div>
         <span class="inline-editor-status" id="inline-editor-status" role="status" aria-live="polite">Chế độ xem</span>
       </div>
+      <label class="inline-editor-token" for="inline-editor-token">
+        Mã chỉnh sửa
+        <input id="inline-editor-token" type="password" autocomplete="off" placeholder="Nhập mã do quản trị viên cấp">
+      </label>
       <div class="inline-editor-actions">
         <button class="inline-editor-btn primary" id="inline-edit-toggle" type="button">✎ Bật chỉnh sửa</button>
         <button class="inline-editor-btn" id="inline-add-block" type="button" disabled>＋ Thêm văn bản</button>
@@ -1055,7 +1082,12 @@
   }, { rootMargin: '-15% 0px -70% 0px' });
   sections.forEach(s => s && obs.observe(s));
 
-  // Interactive Notes Functionality with LocalStorage
+  // Interactive Notes Functionality. LocalStorage remains an offline cache;
+  // the article editor syncs the canonical copy to Supabase through /api/article.
+  const ARTICLE_API_URL = '/api/article?slug=outlier-reid';
+  const ARTICLE_CACHE_KEY = 'thesis_inline_content_v1';
+  const ARTICLE_TOKEN_KEY = 'article_editor_token';
+  let remoteArticleDocument = null;
   const defaultNotes = [
     {
       id: 1,
@@ -1128,6 +1160,7 @@
 
     notes.unshift(newNote);
     localStorage.setItem('thesis_notes', JSON.stringify(notes));
+    if (typeof markInlineEditsDirty === 'function') markInlineEditsDirty();
     input.value = '';
     renderNotes();
   }
@@ -1136,6 +1169,7 @@
     let notes = getNotes();
     notes = notes.filter(n => n.id !== id);
     localStorage.setItem('thesis_notes', JSON.stringify(notes));
+    if (typeof markInlineEditsDirty === 'function') markInlineEditsDirty();
     renderNotes();
   }
 
@@ -1157,9 +1191,10 @@
     reader.onload = function(e) {
       try {
         const imported = JSON.parse(e.target.result);
-        if (Array.isArray(imported)) {
-          localStorage.setItem('thesis_notes', JSON.stringify(imported));
-          renderNotes();
+         if (Array.isArray(imported)) {
+           localStorage.setItem('thesis_notes', JSON.stringify(imported));
+           if (typeof markInlineEditsDirty === 'function') markInlineEditsDirty();
+           renderNotes();
           alert('✅ Đã nhập thành công ' + imported.length + ' ghi chú!');
         }
       } catch (err) {
@@ -1180,11 +1215,11 @@
 
   document.addEventListener('DOMContentLoaded', renderNotes);
 
-  // Inline article editing: changes are saved locally in this browser.
-  const INLINE_EDITOR_STORAGE_KEY = 'thesis_inline_content_v1';
+  // Inline article editing: Supabase is the shared source of truth.
   const inlineContent = document.querySelector('.content');
   const inlineEditorPanel = document.getElementById('inline-editor-panel');
   const inlineEditorStatus = document.getElementById('inline-editor-status');
+  const inlineEditorToken = document.getElementById('inline-editor-token');
   const inlineEditToggle = document.getElementById('inline-edit-toggle');
   const inlineAddBlock = document.getElementById('inline-add-block');
   const inlineDeleteBlock = document.getElementById('inline-delete-block');
@@ -1192,6 +1227,13 @@
   const inlineReset = document.getElementById('inline-reset');
   const inlineEditableSelector = 'h1, h2, h3, p, figcaption, .db-table-header, .db-table-field, .ui-panel-label';
   const inlineEditorState = { enabled: false, activeBlock: null, dirty: false };
+
+  if (inlineEditorToken) {
+    inlineEditorToken.value = sessionStorage.getItem(ARTICLE_TOKEN_KEY) || '';
+    inlineEditorToken.addEventListener('input', () => {
+      sessionStorage.setItem(ARTICLE_TOKEN_KEY, inlineEditorToken.value.trim());
+    });
+  }
 
   function setInlineStatus(message, state = 'view') {
     if (!inlineEditorStatus) return;
@@ -1244,6 +1286,14 @@
     if (panel) panel.remove();
     snapshot.querySelectorAll('[contenteditable]').forEach(element => element.removeAttribute('contenteditable'));
     snapshot.querySelectorAll('.is-editing').forEach(element => element.classList.remove('is-editing'));
+    snapshot.querySelectorAll('script, iframe, object, embed, form').forEach(element => element.remove());
+    snapshot.querySelectorAll('*').forEach(element => {
+      Array.from(element.attributes).forEach(attribute => {
+        if (/^on/i.test(attribute.name) || attribute.name === 'srcdoc' || /javascript\s*:/i.test(attribute.value)) {
+          element.removeAttribute(attribute.name);
+        }
+      });
+    });
     return snapshot.innerHTML;
   }
 
@@ -1259,29 +1309,86 @@
 
   const originalInlineArticleMarkup = getInlineArticleMarkup();
 
-  function loadInlineEdits() {
-    const savedMarkup = localStorage.getItem(INLINE_EDITOR_STORAGE_KEY);
-    if (!savedMarkup) return;
+  function getEditorToken() {
+    return (inlineEditorToken?.value || sessionStorage.getItem(ARTICLE_TOKEN_KEY) || '').trim();
+  }
+
+  function cacheInlineArticle(markup, notes) {
+    localStorage.setItem(ARTICLE_CACHE_KEY, markup);
+    if (Array.isArray(notes)) localStorage.setItem('thesis_notes', JSON.stringify(notes));
+  }
+
+  async function loadInlineEdits() {
+    let loadedFromDatabase = false;
     try {
-      restoreInlineArticleMarkup(savedMarkup);
-      inlineEditorState.dirty = false;
-      setInlineStatus('Đã tải bản nháp đã lưu', 'success');
+      const response = await fetch(ARTICLE_API_URL, { headers: { Accept: 'application/json' } });
+      if (!response.ok) throw new Error(`Article API returned ${response.status}`);
+      const payload = await response.json();
+      remoteArticleDocument = payload.document || null;
+      if (remoteArticleDocument?.content_html) {
+        restoreInlineArticleMarkup(remoteArticleDocument.content_html);
+        if (Array.isArray(remoteArticleDocument.notes)) {
+          localStorage.setItem('thesis_notes', JSON.stringify(remoteArticleDocument.notes));
+          renderNotes();
+        }
+        cacheInlineArticle(remoteArticleDocument.content_html, remoteArticleDocument.notes);
+        loadedFromDatabase = true;
+        inlineEditorState.dirty = false;
+        setInlineStatus('Đã tải nội dung từ database', 'success');
+      }
     } catch (error) {
-      localStorage.removeItem(INLINE_EDITOR_STORAGE_KEY);
-      setInlineStatus('Không thể tải bản nháp', 'warning');
+      setInlineStatus('Database chưa kết nối — đang dùng bản cache', 'warning');
+    }
+
+    if (!loadedFromDatabase) {
+      const savedMarkup = localStorage.getItem(ARTICLE_CACHE_KEY);
+      if (savedMarkup) {
+        try {
+          restoreInlineArticleMarkup(savedMarkup);
+          inlineEditorState.dirty = false;
+          setInlineStatus('Đã tải bản cache trên trình duyệt', 'warning');
+        } catch (error) {
+          localStorage.removeItem(ARTICLE_CACHE_KEY);
+        }
+      } else if (!remoteArticleDocument) {
+        setInlineStatus('Chưa có bản nháp trên database', 'view');
+      }
     }
     updateInlineEditorButtons();
   }
 
-  function saveInlineEdits() {
+  async function saveInlineEdits() {
     if (!inlineContent) return;
+    const token = getEditorToken();
+    if (!token) {
+      setInlineStatus('Hãy nhập mã chỉnh sửa trước khi lưu', 'warning');
+      inlineEditorToken?.focus();
+      return;
+    }
+
     stopInlineBlockEditing();
+    const markup = getInlineArticleMarkup();
+    const notes = getNotes();
+    inlineSave.disabled = true;
+    setInlineStatus('Đang lưu lên database…', 'editing');
     try {
-      localStorage.setItem(INLINE_EDITOR_STORAGE_KEY, getInlineArticleMarkup());
+      const response = await fetch(ARTICLE_API_URL, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Article-Editor-Token': token
+        },
+        body: JSON.stringify({ content_html: markup, notes })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || `Article API returned ${response.status}`);
+      remoteArticleDocument = payload.document || { content_html: markup, notes };
+      cacheInlineArticle(markup, notes);
       inlineEditorState.dirty = false;
-      setInlineStatus('Đã lưu bản nháp trên trình duyệt', 'success');
+      setInlineStatus('Đã lưu nội dung và ghi chú lên database', 'success');
     } catch (error) {
-      setInlineStatus('Không thể lưu bản nháp', 'warning');
+      cacheInlineArticle(markup, notes);
+      setInlineStatus('Chưa lưu được database — đã giữ bản cache trên trình duyệt', 'warning');
     }
     updateInlineEditorButtons();
   }
@@ -1323,9 +1430,29 @@
     updateInlineEditorButtons();
   }
 
-  function resetInlineEdits() {
+  async function resetInlineEdits() {
     if (inlineEditorState.dirty && !window.confirm('Khôi phục nội dung gốc và bỏ các thay đổi chưa lưu?')) return;
-    localStorage.removeItem(INLINE_EDITOR_STORAGE_KEY);
+    const token = getEditorToken();
+    if (remoteArticleDocument) {
+      if (!token) {
+        setInlineStatus('Nhập mã chỉnh sửa để khôi phục database', 'warning');
+        inlineEditorToken?.focus();
+        return;
+      }
+      if (!window.confirm('Xóa bản nháp đang lưu trên database và khôi phục nội dung gốc?')) return;
+      try {
+        const response = await fetch(ARTICLE_API_URL, {
+          method: 'DELETE',
+          headers: { 'X-Article-Editor-Token': token }
+        });
+        if (!response.ok) throw new Error('Delete failed');
+        remoteArticleDocument = null;
+      } catch (error) {
+        setInlineStatus('Không thể xóa bản nháp trên database', 'warning');
+        return;
+      }
+    }
+    localStorage.removeItem(ARTICLE_CACHE_KEY);
     restoreInlineArticleMarkup(originalInlineArticleMarkup);
     inlineEditorState.enabled = false;
     inlineEditorState.dirty = false;
