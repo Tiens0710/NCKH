@@ -42,14 +42,15 @@ Production (và Preview nếu cần):
 
 ```text
 SUPABASE_URL=https://wtwjsisqghrqtqhzepci.supabase.co
-SUPABASE_SECRET_KEY=<khóa sb_secret mới>
+SUPABASE_SECRET_KEY=<khóa sb_secret>
 ```
 
 Sau khi deploy, mở trang bài báo, bấm **Sửa nội dung**, chọn đoạn cần sửa và
 bấm **Lưu bản nháp**. Nội dung và ghi chú sẽ được upsert vào Supabase; nút
 **Khôi phục gốc** sẽ xóa bản nháp database sau khi xác nhận. Chế độ này mở
 quyền sửa cho bất kỳ ai truy cập được trang, phù hợp cho bản demo; không nên
-dùng nguyên trạng cho hệ thống production.
+dùng nguyên trạng cho hệ thống production. Khóa bí mật chỉ được dùng trong API
+serverless trên Vercel, không đưa xuống trình duyệt.
 
 ## Chạy và public bản Streamlit
 
