@@ -10,6 +10,7 @@ from urllib.request import Request, urlopen
 from uuid import uuid4
 
 import streamlit as st
+import streamlit.components.v1 as components
 import folium
 import leafmap.foliumap as leafmap
 from supabase import Client, create_client
@@ -163,6 +164,135 @@ def _download_storage_object(client: Client, bucket: str, path: str) -> bytes:
     return content if isinstance(content, bytes) else bytes(content)
 
 
+def _create_signed_storage_url(client: Client, bucket: str, path: str) -> str:
+    """Create a short-lived URL so the browser can stream a private video."""
+    response = client.storage.from_(bucket).create_signed_url(path, 900)
+    url = response.get("signedURL") or response.get("signedUrl") if isinstance(response, dict) else None
+    if not url:
+        raise RuntimeError("Supabase không trả về signed URL cho video.")
+    return str(url)
+
+
+def _build_bbox_video_html(
+    video_url: str,
+    detection_payload: dict[str, Any],
+    width: int,
+    height: int,
+) -> str:
+    """Build a browser player that overlays the nearest sampled RetinaNet boxes."""
+    safe_url = json.dumps(video_url).replace("<", "\\u003c")
+    safe_payload = json.dumps(detection_payload, ensure_ascii=False, separators=(",", ":"))
+    safe_payload = safe_payload.replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
+    template = r"""<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #17232a; font: 14px/1.45 system-ui, sans-serif; }
+    .player { position: relative; width: 100%; aspect-ratio: __WIDTH__ / __HEIGHT__; overflow: hidden; background: #101418; border-radius: 8px; }
+    video, canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+    video { display: block; object-fit: fill; }
+    canvas { pointer-events: none; }
+    .status { min-height: 1.5em; margin: 8px 2px 0; color: #52616b; }
+  </style>
+</head>
+<body>
+  <div id="player" class="player">
+    <video id="video" controls playsinline preload="metadata" aria-label="Video đã phủ bounding box"></video>
+    <canvas id="overlay" aria-hidden="true"></canvas>
+  </div>
+  <p id="status" class="status" role="status" aria-live="polite">Đang tải video…</p>
+  <script>
+    const VIDEO_URL = __VIDEO_URL__;
+    const RESULT = __RESULT__;
+    const video = document.getElementById("video");
+    const player = document.getElementById("player");
+    const canvas = document.getElementById("overlay");
+    const ctx = canvas.getContext("2d");
+    const status = document.getElementById("status");
+    const frames = Array.isArray(RESULT.frames) ? RESULT.frames : [];
+
+    function frameAt(time) {
+      let low = 0, high = frames.length - 1, best = -1;
+      while (low <= high) {
+        const middle = (low + high) >> 1;
+        const sampleTime = Number(frames[middle].time_seconds ?? 0);
+        if (sampleTime <= time + 0.025) { best = middle; low = middle + 1; }
+        else { high = middle - 1; }
+      }
+      return best < 0 ? null : frames[best];
+    }
+
+    function drawBoxes() {
+      if (!video.videoWidth || !canvas.width) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const sample = frameAt(video.currentTime);
+      if (!sample) {
+        status.textContent = "Chưa tới frame đầu tiên được RetinaNet phân tích.";
+        return;
+      }
+      const boxes = Array.isArray(sample.detections) ? sample.detections : [];
+      const sx = canvas.width / Number(RESULT.width || video.videoWidth);
+      const sy = canvas.height / Number(RESULT.height || video.videoHeight);
+      const lineWidth = Math.max(3, canvas.width / 480);
+      const fontSize = Math.max(18, canvas.width / 75);
+      ctx.lineWidth = lineWidth;
+      ctx.font = `600 ${fontSize}px system-ui, sans-serif`;
+      for (const detection of boxes) {
+        const box = detection.xyxy;
+        if (!Array.isArray(box) || box.length !== 4 || !box.every(Number.isFinite)) continue;
+        const x1 = box[0] * sx, y1 = box[1] * sy;
+        const x2 = box[2] * sx, y2 = box[3] * sy;
+        const boxWidth = x2 - x1, boxHeight = y2 - y1;
+        if (boxWidth <= 0 || boxHeight <= 0) continue;
+        ctx.strokeStyle = "#ff5a24";
+        ctx.strokeRect(x1, y1, boxWidth, boxHeight);
+        const label = `Người · ${(Number(detection.score || 0) * 100).toFixed(1)}%`;
+        const labelHeight = fontSize * 1.55;
+        const labelWidth = ctx.measureText(label).width + fontSize;
+        const labelY = Math.max(0, y1 - labelHeight);
+        ctx.fillStyle = "#ff5a24";
+        ctx.fillRect(x1, labelY, labelWidth, labelHeight);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(label, x1 + fontSize / 2, labelY + fontSize * 1.12);
+      }
+      const sampleTime = Number(sample.time_seconds ?? 0).toFixed(2);
+      status.textContent = boxes.length
+        ? `Frame AI gần nhất: ${sampleTime}s · ${boxes.length} bounding box.`
+        : `Frame AI gần nhất: ${sampleTime}s · không phát hiện người.`;
+    }
+
+    function startDrawing() {
+      drawBoxes();
+      if (!video.paused && !video.ended) requestAnimationFrame(startDrawing);
+    }
+
+    video.addEventListener("loadedmetadata", () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      player.style.aspectRatio = `${video.videoWidth} / ${video.videoHeight}`;
+      drawBoxes();
+    });
+    video.addEventListener("timeupdate", drawBoxes);
+    video.addEventListener("seeked", drawBoxes);
+    video.addEventListener("play", startDrawing);
+    video.addEventListener("error", () => {
+      status.textContent = "Không tải được video. Hãy tải lại trang kết quả rồi thử lại.";
+    });
+    video.src = VIDEO_URL;
+  </script>
+</body>
+</html>"""
+    return (
+        template.replace("__WIDTH__", str(max(1, int(width))))
+        .replace("__HEIGHT__", str(max(1, int(height))))
+        .replace("__VIDEO_URL__", safe_url)
+        .replace("__RESULT__", safe_payload)
+    )
+
+
 def render_live_detection_results(client: Client) -> None:
     """Render the actual RetinaNet output written by the Kaggle Worker."""
     st.subheader("Kết quả RetinaNet từ video đã xử lý")
@@ -237,7 +367,48 @@ def render_live_detection_results(client: Client) -> None:
         "không phải số người duy nhất. RetinaNet hiện phát hiện người, chưa thực hiện Re-ID hoặc định vị GPS."
     )
 
-    with st.expander("Video đầu vào", expanded=True):
+    detection_payload: dict[str, Any] | None = None
+    try:
+        detection_bytes = _download_storage_object(
+            client,
+            "raw-detections",
+            detection["storage_path"],
+        )
+        detection_payload = json.loads(detection_bytes.decode("utf-8"))
+    except Exception as exc:
+        st.warning(f"Không đọc được JSON RetinaNet: {exc}")
+
+    with st.expander("Video có bounding box", expanded=True):
+        if detection_payload:
+            try:
+                signed_video_url = _create_signed_storage_url(
+                    client,
+                    "raw-videos",
+                    video["storage_path"],
+                )
+                video_width = int(video.get("width") or detection_payload.get("width") or 16)
+                video_height = int(video.get("height") or detection_payload.get("height") or 9)
+                components.html(
+                    _build_bbox_video_html(
+                        signed_video_url,
+                        detection_payload,
+                        video_width,
+                        video_height,
+                    ),
+                    height=860,
+                    scrolling=False,
+                )
+                st.caption(
+                    "Khung màu cam là kết quả RetinaNet tại frame được lấy mẫu. "
+                    "Mô hình lấy mẫu khoảng mỗi giây; khung được giữ đến lần lấy mẫu kế tiếp, "
+                    "không phải tracking liên tục."
+                )
+            except Exception as exc:
+                st.warning(f"Không tạo được video có bounding box: {exc}")
+        else:
+            st.info("Chưa tải được dữ liệu detection để phủ bounding box lên video.")
+
+    with st.expander("Video gốc", expanded=False):
         try:
             video_bytes = _download_storage_object(client, "raw-videos", video["storage_path"])
             st.video(
@@ -247,18 +418,7 @@ def render_live_detection_results(client: Client) -> None:
         except Exception as exc:
             st.warning(f"Không phát được video gốc từ Storage: {exc}")
 
-    detection_payload: dict[str, Any] | None = None
     with st.expander("Bounding box theo từng frame", expanded=True):
-        try:
-            detection_bytes = _download_storage_object(
-                client,
-                "raw-detections",
-                detection["storage_path"],
-            )
-            detection_payload = json.loads(detection_bytes.decode("utf-8"))
-        except Exception as exc:
-            st.warning(f"Không đọc được JSON RetinaNet: {exc}")
-
         if detection_payload:
             rows: list[dict[str, Any]] = []
             for frame in detection_payload.get("frames", []):
