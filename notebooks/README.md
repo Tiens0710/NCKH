@@ -1,30 +1,17 @@
-# Chạy RetinaNet trên Kaggle khi cần
+# Dùng demo RetinaNet
 
-Notebook: [`retinanet_kaggle.ipynb`](retinanet_kaggle.ipynb). Đây là nơi chạy AI
-theo yêu cầu, **không phải backend API luôn trực tuyến**. FastAPI miễn phí trên
-Render tiếp tục nhận video cho [giao diện Next.js](https://nckh-reid.vercel.app/videos)
-và sẽ tự ngủ khi không có truy cập.
+## Xử lý một đợt video
 
-1. Trên Kaggle, tạo Notebook mới rồi dùng **File → Import Notebook** để tải
-   `retinanet_kaggle.ipynb` từ máy lên. Chưa có kết nối Kaggle trong dự án nên
-   bước import này cần bạn thực hiện.
-2. Trong Settings của Notebook, bật **Internet**. Có thể chọn **GPU** nếu tài
-   khoản được cấp GPU; Notebook cũng chạy được bằng CPU.
-3. Ở ô thứ hai, khi Notebook hỏi khóa, dán `sb_secret_...` của dự án Supabase
-   rồi nhấn Enter. Ô nhập ẩn ký tự và không lưu khóa trong file Notebook.
-   Nếu muốn khỏi nhập lại, có thể lưu khóa dưới tên `SUPABASE_SECRET_KEY`
-   trong **Add-ons → Secrets** và gắn nó với Notebook. Không ghi khóa cố định
-   vào ô mã, không chia sẻ ảnh chụp màn hình chứa khóa.
-4. Trên web, thêm camera và upload video có người thật (tối đa 48 MB). Sau đó
-   trở lại Kaggle, bấm **Run All**. Notebook lấy tối đa 20 video trạng thái
-   `pending`, lưu JSON chi tiết trong bucket riêng tư `raw-detections` và cập
-   nhật tóm tắt trong bảng `videos`.
-5. Tải lại trang Video trên web và bấm **Xem tóm tắt**. Nếu muốn xử lý video mới,
-   chạy lại Notebook khi cần. Video mẫu hình vẽ có thể cho 0 khung bao.
+1. Trên web, mở **Video**, chọn video mẫu hoặc tải các video của bạn, rồi bấm **Gửi video đi xử lý**.
+2. Mở [notebook Kaggle](https://www.kaggle.com/code/tiens0710/nckh-retinanet-worker/edit) và bấm **Run All** một lần cho cả đợt. Notebook xử lý tối đa 20 video đang chờ.
+3. Quay lại web ở trang **Kết quả**. Trạng thái và kết quả bounding box tự cập nhật; không cần tải lại trang.
 
-Kaggle Notebook có giới hạn phiên chạy và không cung cấp API ổn định cho web;
-vì vậy không dùng nó thay toàn bộ FastAPI. Không đưa dữ liệu hình ảnh cá nhân
-hoặc video camera lên dịch vụ bên ngoài khi chưa có quyền và sự đồng ý cần thiết.
+Video gửi sau khi notebook đã kết thúc sẽ cần một lượt **Run All** mới. Có thể gửi nhiều video lên web trước để Kaggle xử lý chung trong một lượt.
 
-Nếu code từ GitHub thay đổi, chạy lại ô đầu tiên để `git pull --ff-only` trước
-khi xử lý. Không lưu output Notebook chứa thông tin nhạy cảm.
+## Thiết lập Kaggle lần đầu
+
+- Trong Notebook Settings, bật **Internet**; chọn GPU nếu có, nhưng CPU vẫn chạy được.
+- Thêm secret `SUPABASE_SECRET_KEY` trong **Add-ons → Secrets**. Nếu chưa thêm, notebook sẽ hỏi khóa khi chạy. Không ghi khóa vào code hoặc chia sẻ khóa.
+- Chạy **Run All**. Khi notebook kết thúc, nó báo số khung người đã phát hiện.
+
+Notebook dùng RetinaNet để phát hiện người, không làm tracking/Re-ID. Video phải là video bạn có quyền sử dụng; Kaggle là phiên chạy có giới hạn, không phải backend hoạt động liên tục.

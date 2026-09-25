@@ -24,7 +24,8 @@ st.set_page_config(
 )
 
 MAX_UPLOAD_BYTES = 48 * 1024 * 1024
-NAVIGATION_ITEMS = ["Tổng quan", "Camera", "Video", "Tìm người", "Kết quả"]
+NAVIGATION_ITEMS = ["Tổng quan", "Video", "Kết quả", "Camera"]
+KAGGLE_WORKER_URL = "https://www.kaggle.com/code/tiens0710/nckh-retinanet-worker/edit"
 DEMO_VIDEO_PRESETS = {
     "people-detection.mp4 · Người đi bộ": {
         "key": "people-detection",
@@ -326,8 +327,8 @@ def render_live_detection_results(client: Client) -> None:
 
     if not processed_videos:
         st.info(
-            "Chưa có video RetinaNet hoàn tất. Hãy thêm video mẫu, chạy Kaggle Worker "
-            "rồi tải lại trang này."
+            "Chưa có video RetinaNet hoàn tất. Gửi video ở mục **Video**; nếu Kaggle "
+            "đang tắt, mở Worker và bấm **Run All**. Trang này sẽ tự hiện kết quả khi xong."
         )
         return
 
@@ -554,58 +555,58 @@ def download_demo_video(url: str) -> bytes:
 
 def dashboard(client: Client) -> None:
     st.header("Tổng quan")
-    st.caption("Trang chính · Theo dõi nhanh tình trạng dữ liệu và chọn bước tiếp theo")
-    table_names = ["cameras", "videos", "tracklets", "search_queries"]
-    labels = ["Camera", "Video", "Tracklet", "Truy vấn"]
+    st.caption("Demo phát hiện người bằng RetinaNet · Campus II, Đại học Cần Thơ")
+    metrics_to_show = [
+        ("Camera", "cameras", None),
+        ("Video", "videos", None),
+        ("Đã xử lý", "videos", "completed"),
+    ]
     counts: dict[str, int | str] = {}
-    columns = st.columns(4)
-    for column, table, label in zip(columns, table_names, labels, strict=True):
+    columns = st.columns(len(metrics_to_show))
+    for column, (label, table, status) in zip(columns, metrics_to_show, strict=True):
         try:
-            response = client.table(table).select("id", count="exact").limit(1).execute()
+            query = client.table(table).select("id", count="exact")
+            if status:
+                query = query.eq("status", status)
+            response = query.limit(1).execute()
             count = response.count if response.count is not None else 0
         except Exception:
             count = "—"
         counts[label] = count
         column.metric(label, count)
 
-    st.info(
-        "Database và Storage đã kết nối. Nếu bạn chỉ muốn xem bản trình diễn, "
-        "chọn **Kết quả** ở thanh bên hoặc bấm nút bên dưới."
-    )
-
     st.subheader("Bắt đầu nhanh")
-    st.caption("Đi theo 4 bước dưới đây khi bạn muốn thử luồng dữ liệu mới.")
-    quick_steps = [
-        ("1", "Camera", "Khai báo vị trí camera", "Mở Camera"),
-        ("2", "Video", "Tải video gắn với camera", "Mở Video"),
-        ("3", "Tìm người", "Tải ảnh để tạo truy vấn", "Tạo truy vấn"),
-        ("4", "Kết quả", "Xem kết quả và hành trình", "Xem kết quả"),
-    ]
-    quick_columns = st.columns(4)
-    for column, (step, title, description, button_label) in zip(
-        quick_columns, quick_steps, strict=True
-    ):
-        with column:
-            st.markdown(f"**Bước {step} · {title}**")
-            st.caption(description)
-            st.button(
-                button_label,
-                key=f"quick_{title}",
-                use_container_width=True,
-                on_click=navigate_to,
-                args=(title,),
-            )
-
-    st.subheader("Trạng thái hiện tại")
+    left, right = st.columns(2)
+    left.button(
+        "＋  Gửi video mới",
+        key="quick_video",
+        type="primary",
+        use_container_width=True,
+        on_click=navigate_to,
+        args=("Video",),
+    )
+    right.button(
+        "Xem kết quả đã chạy",
+        key="quick_results",
+        use_container_width=True,
+        on_click=navigate_to,
+        args=("Kết quả",),
+    )
+    st.info(
+        "**Quy trình:** gửi video → mở Kaggle và bấm **Run All** một lần cho cả đợt "
+        "(tối đa 20 video đang chờ). Kết quả tự cập nhật trên web. Nếu gửi thêm video "
+        "sau khi notebook đã kết thúc, chạy **Run All** lần nữa."
+    )
+    st.link_button("Mở Kaggle Worker", KAGGLE_WORKER_URL)
     st.caption(
-        f"Đã có {counts['Camera']} camera, {counts['Video']} video và "
-        f"{counts['Truy vấn']} truy vấn. Tracklet chỉ xuất hiện sau khi AI Worker xử lý."
+        f"Hiện có {counts['Camera']} camera, {counts['Video']} video; "
+        f"{counts['Đã xử lý']} video đã hoàn tất."
     )
 
 
 def camera_page(client: Client) -> None:
     st.header("Camera")
-    st.caption("Bước 1 / 4 · Khai báo các điểm quan sát trong khuôn viên")
+    st.caption("Cấu hình một lần; camera dùng để gắn nhãn các video đã gửi.")
     st.info("Tạo camera trước. Mỗi video sau đó sẽ được gắn với một camera cụ thể.")
     with st.expander("Thêm camera", expanded=False):
         with st.form("camera_form", clear_on_submit=True):
@@ -659,13 +660,7 @@ def camera_page(client: Client) -> None:
 
 def video_page(client: Client) -> None:
     st.header("Video")
-    st.caption("Bước 2 / 4 · Tải video và gắn vào camera")
-    if notice := st.session_state.pop("demo_video_notice", None):
-        st.success(notice)
-    st.info(
-        "Bạn có thể chọn video mẫu có sẵn để xem ngay hoặc đưa thẳng vào hàng chờ AI; "
-        "video cá nhân vẫn tải bằng biểu mẫu bên dưới."
-    )
+    st.caption("Chọn video mẫu hoặc tải video của bạn, rồi gửi vào hàng chờ AI.")
     try:
         cameras = (
             client.table("cameras")
@@ -680,174 +675,168 @@ def video_page(client: Client) -> None:
         return
 
     if not cameras:
-        st.warning("Hãy thêm ít nhất một camera trước khi tải video.")
+        st.warning("Chưa có camera. Thêm camera một lần để bắt đầu gửi video.")
+        st.button(
+            "Thêm camera",
+            key="video_add_camera",
+            on_click=navigate_to,
+            args=("Camera",),
+        )
     else:
         camera_labels = {
             f"{item['name']} — {item.get('area') or 'chưa có khu vực'}": item["id"]
             for item in cameras
         }
-
-        st.subheader("Video mẫu có sẵn")
-        preset_label = st.selectbox(
-            "Chọn video mẫu",
-            list(DEMO_VIDEO_PRESETS),
-            help="Video được lấy từ một kho mẫu công khai để bạn không cần tải file thủ công.",
+        source = st.radio(
+            "Nguồn video",
+            ["Video mẫu (khuyên dùng)", "Tải video của tôi"],
+            horizontal=True,
+            label_visibility="collapsed",
+            key="video_source",
         )
-        preset = DEMO_VIDEO_PRESETS[preset_label]
-        st.caption(preset["description"])
         st.caption(
-            "Nút bên dưới sẽ lưu video vào Supabase với trạng thái **pending**. "
-            "Sau đó cần chạy Kaggle Worker để RetinaNet chuyển sang **completed**."
+            "Gửi xong, web tự mở Kết quả. Sau đó bấm Run All trên Kaggle để xử lý video."
         )
-        autoplay = st.checkbox(
-            "Tự động phát video mẫu (đã tắt tiếng)",
-            value=True,
-            key="demo_video_autoplay",
-        )
-        st.video(
-            preset["url"],
-            format=preset["content_type"],
-            autoplay=autoplay,
-            muted=autoplay,
-            loop=False,
-        )
-        preset_camera = st.selectbox(
-            "Camera cho video mẫu",
-            list(camera_labels),
-            key="demo_video_camera",
-        )
-        if st.button(
-            "Thêm video mẫu vào hàng chờ AI",
-            type="primary",
-            use_container_width=True,
-            key="use_demo_video",
-        ):
-            started_utc = datetime.now(timezone.utc)
-            storage_path = (
-                f"{camera_labels[preset_camera]}/{started_utc:%Y/%m/%d}/"
-                f"{uuid4()}-{preset['filename']}"
-            )
-            try:
-                with st.spinner("Đang lấy video mẫu và lưu vào Supabase..."):
-                    content = download_demo_video(preset["url"])
-                    upload_to_storage(
-                        client,
-                        "raw-videos",
-                        storage_path,
-                        content,
-                        preset["content_type"],
-                    )
-                    row = {
-                        "camera_id": camera_labels[preset_camera],
-                        "storage_path": storage_path,
-                        "started_at": started_utc.isoformat(),
-                        "fps": preset["fps"],
-                        "width": preset["width"],
-                        "height": preset["height"],
-                        "status": "pending",
-                        "metadata": {
-                            "original_filename": preset["filename"],
-                            "content_type": preset["content_type"],
-                            "size_bytes": len(content),
-                            "source": "built-in-demo",
-                            "preset_key": preset["key"],
-                        },
-                    }
-                    try:
-                        inserted = client.table("videos").insert(row).execute()
-                    except Exception:
-                        client.storage.from_("raw-videos").remove([storage_path])
-                        raise
-                    inserted_row = (inserted.data or [{}])[0]
-                st.session_state["demo_video_notice"] = (
-                    "Đã thêm video mẫu vào hàng chờ AI với trạng thái pending. "
-                    "Mở Kaggle Worker và chạy notebook để RetinaNet xử lý. "
-                    f"Mã video: {inserted_row.get('id', 'không xác định')}"
-                )
-                st.rerun()
-            except Exception as exc:
-                st.error(f"Không thể thêm video mẫu: {exc}")
 
-        st.divider()
-        st.subheader("Tải video của bạn")
-        st.caption("Chọn camera, thời gian bắt đầu, chọn file rồi bấm **Tải video lên**.")
-        with st.form("video_upload", clear_on_submit=True):
-            selected = st.selectbox("Camera", list(camera_labels))
-            started_at = st.datetime_input("Thời gian bắt đầu", value=datetime.now())
-            uploaded = st.file_uploader(
-                "Video (tối đa 48 MB)",
-                type=["mp4", "mov", "avi", "mkv", "webm"],
+        if source == "Video mẫu (khuyên dùng)":
+            st.subheader("Thử nhanh bằng video mẫu")
+            preset_label = st.selectbox(
+                "Chọn video mẫu",
+                list(DEMO_VIDEO_PRESETS),
+                help="Video sẵn có, không cần chọn file từ máy.",
             )
-            submitted = st.form_submit_button("Tải video lên")
-        if submitted:
-            if uploaded is None:
-                st.error("Bạn chưa chọn video.")
-            elif uploaded.size > MAX_UPLOAD_BYTES:
-                st.error("Video vượt quá giới hạn 48 MB.")
-            else:
-                camera_id = camera_labels[selected]
-                started_utc = started_at.replace(tzinfo=timezone.utc)
-                filename = safe_filename(uploaded.name, "video.mp4")
+            preset = DEMO_VIDEO_PRESETS[preset_label]
+            st.caption(preset["description"])
+            st.video(preset["url"], format=preset["content_type"], autoplay=False)
+            preset_camera = st.selectbox(
+                "Camera",
+                list(camera_labels),
+                key="demo_video_camera",
+            )
+            if st.button(
+                "Gửi video mẫu đi xử lý",
+                type="primary",
+                use_container_width=True,
+                key="use_demo_video",
+            ):
+                started_utc = datetime.now(timezone.utc)
                 storage_path = (
-                    f"{camera_id}/{started_utc:%Y/%m/%d}/"
-                    f"{uuid4()}-{filename}"
+                    f"{camera_labels[preset_camera]}/{started_utc:%Y/%m/%d}/"
+                    f"{uuid4()}-{preset['filename']}"
                 )
                 try:
-                    content = uploaded.getvalue()
-                    upload_to_storage(
-                        client,
-                        "raw-videos",
-                        storage_path,
-                        content,
-                        uploaded.type or "application/octet-stream",
-                    )
-                    row = {
-                        "camera_id": camera_id,
-                        "storage_path": storage_path,
-                        "started_at": started_utc.isoformat(),
-                        "status": "pending",
-                        "metadata": {
-                            "original_filename": uploaded.name,
-                            "content_type": uploaded.type,
-                            "size_bytes": len(content),
-                        },
-                    }
-                    try:
-                        client.table("videos").insert(row).execute()
-                    except Exception:
-                        client.storage.from_("raw-videos").remove([storage_path])
-                        raise
-                    st.success("Đã tải video lên. AI Worker sẽ xử lý khi được triển khai.")
+                    with st.spinner("Đang đưa video mẫu lên hàng chờ..."):
+                        content = download_demo_video(preset["url"])
+                        upload_to_storage(
+                            client,
+                            "raw-videos",
+                            storage_path,
+                            content,
+                            preset["content_type"],
+                        )
+                        row = {
+                            "camera_id": camera_labels[preset_camera],
+                            "storage_path": storage_path,
+                            "started_at": started_utc.isoformat(),
+                            "fps": preset["fps"],
+                            "width": preset["width"],
+                            "height": preset["height"],
+                            "status": "pending",
+                            "metadata": {
+                                "original_filename": preset["filename"],
+                                "content_type": preset["content_type"],
+                                "size_bytes": len(content),
+                                "source": "built-in-demo",
+                                "preset_key": preset["key"],
+                            },
+                        }
+                        try:
+                            inserted = client.table("videos").insert(row).execute()
+                        except Exception:
+                            client.storage.from_("raw-videos").remove([storage_path])
+                            raise
+                        video_id = (inserted.data or [{}])[0].get("id")
+                    if video_id:
+                        st.session_state["active_video_id"] = video_id
+                    st.session_state.navigation = "Kết quả"
                     st.rerun()
                 except Exception as exc:
-                    st.error(f"Tải video thất bại: {exc}")
+                    st.error(f"Không thể gửi video mẫu: {exc}")
+        else:
+            st.subheader("Tải video của bạn")
+            st.caption("MP4, MOV, AVI, MKV hoặc WEBM · tối đa 48 MB.")
+            with st.form("video_upload", clear_on_submit=True):
+                selected = st.selectbox("Camera", list(camera_labels))
+                started_at = st.datetime_input("Thời gian bắt đầu", value=datetime.now())
+                uploaded = st.file_uploader(
+                    "Chọn video",
+                    type=["mp4", "mov", "avi", "mkv", "webm"],
+                )
+                submitted = st.form_submit_button("Gửi video đi xử lý", type="primary")
+            if submitted:
+                if uploaded is None:
+                    st.error("Chọn video trước nhé.")
+                elif uploaded.size > MAX_UPLOAD_BYTES:
+                    st.error("Video vượt quá giới hạn 48 MB.")
+                else:
+                    camera_id = camera_labels[selected]
+                    started_utc = started_at.replace(tzinfo=timezone.utc)
+                    filename = safe_filename(uploaded.name, "video.mp4")
+                    storage_path = f"{camera_id}/{started_utc:%Y/%m/%d}/{uuid4()}-{filename}"
+                    try:
+                        content = uploaded.getvalue()
+                        upload_to_storage(client, "raw-videos", storage_path, content, uploaded.type or "application/octet-stream")
+                        row = {
+                            "camera_id": camera_id,
+                            "storage_path": storage_path,
+                            "started_at": started_utc.isoformat(),
+                            "status": "pending",
+                            "metadata": {
+                                "original_filename": uploaded.name,
+                                "content_type": uploaded.type,
+                                "size_bytes": len(content),
+                            },
+                        }
+                        try:
+                            inserted = client.table("videos").insert(row).execute()
+                        except Exception:
+                            client.storage.from_("raw-videos").remove([storage_path])
+                            raise
+                        video_id = (inserted.data or [{}])[0].get("id")
+                        if video_id:
+                            st.session_state["active_video_id"] = video_id
+                        st.session_state.navigation = "Kết quả"
+                        st.rerun()
+                    except Exception as exc:
+                        st.error(f"Không thể gửi video: {exc}")
 
-    try:
-        rows = (
-            client.table("videos")
-            .select("id,started_at,status,storage_path,cameras(name,area)")
-            .order("started_at", desc=True)
-            .limit(100)
-            .execute()
-            .data
-        )
-        display = [
-            {
-                "Camera": (row.get("cameras") or {}).get("name"),
-                "Bắt đầu": row.get("started_at"),
-                "Trạng thái": row.get("status"),
-                "Tệp": row.get("storage_path"),
-            }
-            for row in rows
-        ]
-        st.dataframe(display, use_container_width=True, hide_index=True)
-    except Exception as exc:
-        st.error(f"Không đọc được video: {exc}")
+    with st.expander("Lịch sử video", expanded=False):
+        try:
+            rows = (
+                client.table("videos")
+                .select("id,started_at,status,storage_path,metadata,cameras(name,area)")
+                .order("started_at", desc=True)
+                .limit(30)
+                .execute()
+                .data
+            )
+            display = [
+                {
+                    "Tên video": (row.get("metadata") or {}).get("original_filename") or row.get("storage_path", "").split("/")[-1],
+                    "Camera": (row.get("cameras") or {}).get("name"),
+                    "Thời gian": row.get("started_at"),
+                    "Trạng thái": {"pending": "Đang chờ", "processing": "Đang xử lý", "completed": "Hoàn tất", "failed": "Thất bại"}.get(row.get("status"), row.get("status")),
+                }
+                for row in rows
+            ]
+            st.dataframe(display, use_container_width=True, hide_index=True)
+        except Exception as exc:
+            st.error(f"Không đọc được lịch sử video: {exc}")
 
 
 def search_page(client: Client) -> None:
     st.header("Tìm người")
-    st.caption("Bước 3 / 4 · Tải ảnh rõ toàn thân hoặc nửa người để tạo truy vấn Re-ID.")
+    st.caption("Tính năng Re-ID chưa được nối với RetinaNet trong bản demo hiện tại.")
     st.info("Chọn ảnh, điều chỉnh ngưỡng tương đồng nếu cần, rồi bấm **Tạo truy vấn**.")
     with st.form("search_form", clear_on_submit=True):
         image = st.file_uploader("Ảnh truy vấn", type=["jpg", "jpeg", "png", "webp"])
@@ -906,50 +895,116 @@ def search_page(client: Client) -> None:
         st.error(f"Không đọc được truy vấn: {exc}")
 
 
+@st.fragment(run_every="8s")
+def render_active_video_status(client: Client, video_id: str) -> None:
+    """Keep the submitted job status current while its result page is open."""
+    try:
+        rows = (
+            client.table("videos")
+            .select("id,status,metadata")
+            .eq("id", video_id)
+            .limit(1)
+            .execute()
+            .data
+        )
+        video = rows[0] if rows else None
+    except Exception:
+        st.warning("Chưa kiểm tra được tiến độ. Trang sẽ tự thử lại sau vài giây.")
+        return
+
+    if not video:
+        st.session_state.pop("active_video_id", None)
+        st.session_state["video_worker_notice"] = "Không còn tìm thấy video này trong dữ liệu."
+        st.rerun()
+
+    status = video.get("status")
+    if status == "completed":
+        st.session_state.pop("active_video_id", None)
+        st.rerun()
+    elif status == "processing":
+        st.info("**RetinaNet đang xử lý video.** Kết quả sẽ tự hiện ở đây, không cần tải lại trang.")
+    elif status == "pending":
+        st.warning(
+            "**Video đang chờ Kaggle.** Mở notebook và bấm **Run All**. Khi xử lý xong, "
+            "trang này tự chuyển sang kết quả; không cần tải lại web."
+        )
+        st.link_button("Mở Kaggle Worker", KAGGLE_WORKER_URL)
+    elif status == "failed":
+        st.session_state.pop("active_video_id", None)
+        st.session_state["video_worker_notice"] = (
+            "AI xử lý video bị lỗi. Hãy kiểm tra log Kaggle hoặc gửi lại video để thử lại."
+        )
+        st.rerun()
+    else:
+        st.caption(f"Trạng thái video: {status or 'đang kiểm tra'}")
+
+
 def results_page(client: Client) -> None:
     st.header("Kết quả")
-    st.caption("Bước 4 / 4 · Xem kết quả RetinaNet và các đối sánh Re-ID")
-    render_live_detection_results(client)
-    st.divider()
-    with st.expander("Kết quả demo Re-ID và bản đồ mô phỏng", expanded=False):
-        render_demo_results()
-    st.divider()
-    st.subheader("Kết quả truy vấn Re-ID từ Supabase")
-    try:
-        queries = (
-            client.table("search_queries")
-            .select("id,created_at,status")
-            .order("created_at", desc=True)
-            .limit(100)
-            .execute()
-            .data
-        )
-        if not queries:
-            st.info("Chưa có truy vấn.")
-            return
-        labels = {
-            f"{item['created_at']} · {item['status']} · {item['id'][:8]}": item["id"]
-            for item in queries
-        }
-        selected = st.selectbox("Truy vấn", list(labels))
-        query_id = labels[selected]
-        results = (
-            client.table("search_results")
-            .select("rank,similarity_score,tracklets(*,videos(camera_id,started_at,cameras(name,area)))")
-            .eq("query_id", query_id)
-            .order("rank")
-            .execute()
-            .data
-        )
-        if results:
-            st.dataframe(results, use_container_width=True, hide_index=True)
-        else:
-            st.info(
-                "Chưa có kết quả AI trong Supabase. Truy vấn thật vẫn đang pending; "
-                "phần phía trên là dữ liệu demo để xem trước giao diện."
+    st.caption("Kết quả RetinaNet thật và dữ liệu demo được ghi nhãn riêng.")
+    if notice := st.session_state.pop("video_worker_notice", None):
+        st.error(notice)
+    active_video_id = st.session_state.get("active_video_id")
+    if not active_video_id:
+        try:
+            queued = (
+                client.table("videos")
+                .select("id,status")
+                .in_("status", ["pending", "processing"])
+                .order("created_at", desc=True)
+                .limit(20)
+                .execute()
+                .data
             )
-    except Exception as exc:
-        st.error(f"Không đọc được kết quả: {exc}")
+            if queued:
+                active_video_id = next(
+                    (row["id"] for row in queued if row["status"] == "processing"),
+                    queued[0]["id"],
+                )
+                st.session_state["active_video_id"] = active_video_id
+        except Exception:
+            pass
+    if active_video_id:
+        render_active_video_status(client, str(active_video_id))
+    render_live_detection_results(client)
+    if st.checkbox("Hiện bản đồ demo và phần truy vấn Re-ID", key="show_results_extras"):
+        render_demo_results()
+        st.subheader("Kết quả truy vấn Re-ID từ Supabase")
+        try:
+            queries = (
+                client.table("search_queries")
+                .select("id,created_at,status")
+                .order("created_at", desc=True)
+                .limit(100)
+                .execute()
+                .data
+            )
+            if not queries:
+                st.info("Chưa có truy vấn.")
+                return
+            labels = {
+                f"{item['created_at']} · {item['status']} · {item['id'][:8]}": item["id"]
+                for item in queries
+            }
+            selected = st.selectbox("Truy vấn", list(labels))
+            query_id = labels[selected]
+            results = (
+                client.table("search_results")
+                .select("rank,similarity_score,tracklets(*,videos(camera_id,started_at,cameras(name,area)))")
+                .eq("query_id", query_id)
+                .order("rank")
+                .execute()
+                .data
+            )
+            if results:
+                st.dataframe(results, use_container_width=True, hide_index=True)
+            else:
+                st.info(
+                    "Chưa có kết quả AI trong Supabase. Truy vấn thật vẫn đang pending; "
+                    "phần phía trên là dữ liệu demo để xem trước giao diện."
+                )
+        except Exception as exc:
+            st.error(f"Không đọc được kết quả: {exc}")
 
 
 def main() -> None:
@@ -960,14 +1015,16 @@ def main() -> None:
     with st.sidebar:
         st.title("Outlier Re-ID")
         st.caption("Bản demo · Campus II Đại học Cần Thơ")
-        st.markdown("**Quy trình sử dụng**")
+        st.markdown("**Demo RetinaNet**")
+        if st.session_state.get("navigation") not in NAVIGATION_ITEMS:
+            st.session_state["navigation"] = "Tổng quan"
         page = st.radio(
             "Điều hướng",
             NAVIGATION_ITEMS,
             label_visibility="collapsed",
             key="navigation",
         )
-        st.caption("Camera → Video → Tìm người → Kết quả")
+        st.caption("Gửi video → Kaggle Run All → Kết quả tự cập nhật")
         st.divider()
         if st.button("Đăng xuất", use_container_width=True):
             st.session_state.authenticated = False
