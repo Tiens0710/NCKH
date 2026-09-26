@@ -130,10 +130,10 @@ def main() -> None:
     parser.add_argument("--video-id", help="Process a specific pending video UUID")
     parser.add_argument("--retry-failed", action="store_true", help="Retry a failed --video-id")
     parser.add_argument("--poll-seconds", type=float, default=15.0)
-    parser.add_argument("--score-threshold", type=float, default=0.6)
-    parser.add_argument("--sample-seconds", type=float, default=1.0)
+    parser.add_argument("--score-threshold", type=float, default=0.4)
+    parser.add_argument("--sample-seconds", type=float, default=0.5)
     parser.add_argument("--max-frames", type=int, default=120)
-    parser.add_argument("--max-image-side", type=int, default=960)
+    parser.add_argument("--max-image-side", type=int, default=1280)
     parser.add_argument("--device", choices=("cpu", "cuda", "auto"), default="cpu")
     args = parser.parse_args()
     if args.poll_seconds <= 0 or args.max_jobs < 1 or (args.retry_failed and not args.video_id):

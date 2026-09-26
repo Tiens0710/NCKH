@@ -13,10 +13,10 @@ MODEL_VERSION = "COCO_V1"
 
 @dataclass(frozen=True)
 class DetectionOptions:
-    score_threshold: float = 0.6
-    sample_seconds: float = 1.0
+    score_threshold: float = 0.4
+    sample_seconds: float = 0.5
     max_frames: int = 120
-    max_image_side: int = 960
+    max_image_side: int = 1280
 
     def __post_init__(self) -> None:
         if not 0 < self.score_threshold <= 1:

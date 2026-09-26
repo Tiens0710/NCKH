@@ -82,11 +82,14 @@ video, one known video, or keep polling while this computer is on:
 
 Use `--video-id VIDEO_UUID --retry-failed --once` after fixing a failed job.
 The first run downloads approximately 146 MB of official model weights. The
-default samples one frame per second (at most 120 frames) and keeps person
-boxes with confidence >= 0.6. Frames are resized to a maximum side of 960 px
-for bounded memory use; box coordinates are converted back to the original
-video dimensions. You can adjust `--sample-seconds`, `--max-frames`,
-`--max-image-side`, `--score-threshold`, and `--device` (`cpu`, `cuda`, or `auto`).
+default samples one frame every 0.5 seconds (at most 120 frames), keeps person
+boxes with confidence >= 0.4, and resizes frames to a maximum side of 1280 px.
+This can help with small or distant people and short appearances, at the cost of
+more inference work; a lower confidence threshold can also add false positives.
+At the default sampling rate, the 120-frame limit covers about 60 seconds. Box
+coordinates are converted back to the original video dimensions. You can adjust
+`--sample-seconds`, `--max-frames`, `--max-image-side`, `--score-threshold`, and
+`--device` (`cpu`, `cuda`, or `auto`).
 These boxes are detections, not unique
 people. The synthetic `test_data` videos may legitimately return zero boxes.
 
