@@ -100,6 +100,10 @@ def process_video(client: Client, video: dict[str, Any], detector: tuple[Any, An
             "frames_sampled": result["frames_sampled"],
             "frames_with_people": result["frames_with_people"],
             "person_boxes": result["person_boxes"],
+            "inference_batch_size": result["inference_batch_size"],
+            "amp_enabled": result["amp_enabled"],
+            "processing_seconds": result["processing_seconds"],
+            "sampled_frames_per_second": result["sampled_frames_per_second"],
             "storage_path": storage_path,
             "completed_at": datetime.now(timezone.utc).isoformat(),
         }
@@ -110,7 +114,15 @@ def process_video(client: Client, video: dict[str, Any], detector: tuple[Any, An
             "height": result["height"],
             "metadata": metadata,
         }).eq("id", video_id).eq("status", "processing").execute()
-        LOGGER.info("Processed video %s: %d person boxes", video_id, result["person_boxes"])
+        LOGGER.info(
+            "Processed video %s: %d person boxes; %.2fs, %.2f sampled frames/s, batch=%d, AMP=%s",
+            video_id,
+            result["person_boxes"],
+            result["processing_seconds"],
+            result["sampled_frames_per_second"],
+            result["inference_batch_size"],
+            result["amp_enabled"],
+        )
     except Exception:
         LOGGER.exception("Detection failed for video %s", video_id)
         metadata["detection"] = {
@@ -134,13 +146,27 @@ def main() -> None:
     parser.add_argument("--sample-seconds", type=float, default=0.5)
     parser.add_argument("--max-frames", type=int, default=120)
     parser.add_argument("--max-image-side", type=int, default=1280)
+    parser.add_argument(
+        "--inference-batch-size",
+        type=int,
+        default=0,
+        help="Images per inference batch; 0 selects 2 on CUDA and 1 on CPU",
+    )
+    parser.add_argument("--amp", action="store_true", help="Enable CUDA mixed-precision inference")
     parser.add_argument("--device", choices=("cpu", "cuda", "auto"), default="cpu")
     args = parser.parse_args()
     if args.poll_seconds <= 0 or args.max_jobs < 1 or (args.retry_failed and not args.video_id):
         parser.error("--poll-seconds and --max-jobs must be positive; --retry-failed requires --video-id")
     if args.once and args.drain:
         parser.error("Choose either --once or --drain")
-    options = DetectionOptions(args.score_threshold, args.sample_seconds, args.max_frames, args.max_image_side)
+    options = DetectionOptions(
+        args.score_threshold,
+        args.sample_seconds,
+        args.max_frames,
+        args.max_image_side,
+        args.inference_batch_size,
+        args.amp,
+    )
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     signal.signal(signal.SIGINT, request_stop)
     if hasattr(signal, "SIGTERM"):

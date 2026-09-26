@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import dataclass
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 
@@ -17,12 +19,22 @@ class DetectionOptions:
     sample_seconds: float = 0.5
     max_frames: int = 120
     max_image_side: int = 1280
+    inference_batch_size: int = 0
+    use_amp: bool = False
 
     def __post_init__(self) -> None:
         if not 0 < self.score_threshold <= 1:
             raise ValueError("score_threshold must be in (0, 1]")
-        if self.sample_seconds <= 0 or self.max_frames < 1 or self.max_image_side < 320:
-            raise ValueError("sample_seconds/max_frames must be positive and max_image_side >= 320")
+        if (
+            self.sample_seconds <= 0
+            or self.max_frames < 1
+            or self.max_image_side < 320
+            or self.inference_batch_size < 0
+        ):
+            raise ValueError(
+                "sample_seconds/max_frames must be positive, max_image_side >= 320, "
+                "and inference_batch_size must be 0 (auto) or greater"
+            )
 
 
 def load_detector(device: str = "cpu") -> tuple[Any, Any, int, Any]:
@@ -56,6 +68,8 @@ def detect_video(
 
     model, transform, person_label, torch = detector or load_detector()
     model_device = next(model.parameters()).device
+    batch_size = options.inference_batch_size or (2 if model_device.type == "cuda" else 1)
+    amp_enabled = options.use_amp and model_device.type == "cuda"
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise ValueError("Unable to open uploaded video")
@@ -67,10 +81,61 @@ def detect_video(
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frames: list[dict[str, Any]] = []
+    pending_samples: list[dict[str, Any]] = []
     frame_index = 0
+    if model_device.type == "cuda":
+        torch.cuda.synchronize(model_device)
+    processing_started = perf_counter()
+
+    def infer_pending_samples() -> None:
+        if not pending_samples:
+            return
+        model_inputs = [sample["tensor"].to(model_device) for sample in pending_samples]
+        amp_context = (
+            torch.autocast(device_type="cuda", dtype=torch.float16)
+            if amp_enabled
+            else nullcontext()
+        )
+        with torch.inference_mode(), amp_context:
+            predictions = model(model_inputs)
+
+        for sample, prediction in zip(pending_samples, predictions):
+            original_width = sample["original_width"]
+            original_height = sample["original_height"]
+            resized_width = sample["resized_width"]
+            resized_height = sample["resized_height"]
+            boxes = []
+            for label, score, box in zip(
+                prediction["labels"].tolist(),
+                prediction["scores"].tolist(),
+                prediction["boxes"].tolist(),
+            ):
+                if label != person_label or score < options.score_threshold:
+                    continue
+                boxes.append({
+                    "score": round(float(score), 4),
+                    "xyxy": [
+                        round(
+                            float(value)
+                            * (
+                                original_width / resized_width
+                                if index % 2 == 0
+                                else original_height / resized_height
+                            ),
+                            2,
+                        )
+                        for index, value in enumerate(box)
+                    ],
+                })
+            frames.append({
+                "frame_index": sample["frame_index"],
+                "time_seconds": round(sample["frame_index"] / fps, 3),
+                "detections": boxes,
+            })
+        pending_samples.clear()
 
     try:
-        while len(frames) < options.max_frames:
+        while len(frames) + len(pending_samples) < options.max_frames:
             ok, frame = capture.read()
             if not ok:
                 break
@@ -81,32 +146,24 @@ def detect_video(
                     frame = cv2.resize(frame, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
                 resized_height, resized_width = frame.shape[:2]
                 image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
-                tensor = transform(image)
-                with torch.inference_mode():
-                    prediction = model([tensor.to(model_device)])[0]
-                boxes = []
-                for label, score, box in zip(
-                    prediction["labels"].tolist(),
-                    prediction["scores"].tolist(),
-                    prediction["boxes"].tolist(),
-                ):
-                    if label != person_label or score < options.score_threshold:
-                        continue
-                    boxes.append({
-                        "score": round(float(score), 4),
-                        "xyxy": [
-                            round(float(value) * (original_width / resized_width if index % 2 == 0 else original_height / resized_height), 2)
-                            for index, value in enumerate(box)
-                        ],
-                    })
-                frames.append({
+                pending_samples.append({
+                    "tensor": transform(image),
+                    "original_width": original_width,
+                    "original_height": original_height,
+                    "resized_width": resized_width,
+                    "resized_height": resized_height,
                     "frame_index": frame_index,
-                    "time_seconds": round(frame_index / fps, 3),
-                    "detections": boxes,
                 })
+                if len(pending_samples) >= batch_size:
+                    infer_pending_samples()
             frame_index += 1
+        infer_pending_samples()
     finally:
         capture.release()
+
+    if model_device.type == "cuda":
+        torch.cuda.synchronize(model_device)
+    processing_seconds = max(perf_counter() - processing_started, 0.0)
 
     if frame_index == 0:
         raise ValueError("Uploaded video has no readable frames")
@@ -119,6 +176,10 @@ def detect_video(
         "score_threshold": options.score_threshold,
         "sample_seconds": options.sample_seconds,
         "max_image_side": options.max_image_side,
+        "inference_batch_size": batch_size,
+        "amp_enabled": amp_enabled,
+        "processing_seconds": round(processing_seconds, 3),
+        "sampled_frames_per_second": round(len(frames) / processing_seconds, 3) if processing_seconds else 0.0,
         "width": width,
         "height": height,
         "fps": round(fps, 3),
