@@ -235,6 +235,29 @@ Mở `http://127.0.0.1:3000`. Badge phía trên sẽ hiển thị:
 - `campus-maps`: sơ đồ khu vực.
 - `raw-detections`: file JSON detection lớn hoặc dữ liệu trung gian.
 
+### Theo dõi và tìm ứng viên Re-ID trên Kaggle
+
+Notebook `notebooks/retinanet_kaggle.ipynb` chạy Worker với RetinaNet và OSNet.
+Khi khởi động phiên mới, Worker sẽ bổ sung tracklet/vector cho một video RetinaNet
+đã xử lý gần nhất nếu nó chưa có Re-ID. Video mới đi qua các bước:
+
+1. RetinaNet phát hiện người trong các frame lấy mẫu.
+2. IoU nối khung bao gần nhau thành track ID **trong cùng video**. Mất dấu lâu
+   có thể sinh track mới cho cùng một người; đây không phải tracking liên tục.
+3. Worker cắt ảnh người rõ nhất trong mỗi track, lưu vào bucket private
+   `person-crops`, tạo vector OSNet 512 chiều và ghi `tracklets`,
+   `tracklet_embeddings` vào Supabase.
+4. Vào **Tìm người**, tải ảnh toàn thân đã cắt rõ; Worker tính vector cùng mô
+   hình và lưu ứng viên vào `search_results`. Vào **Kết quả** xem camera, thời
+   điểm và điểm tương đồng. Các kết quả này cần kiểm tra thủ công.
+
+Bản đồ thật chỉ hiển thị camera khi `map_x` là vĩ độ và `map_y` là kinh độ hợp
+lệ. Hai camera demo hiện chưa có cặp tọa độ hợp lệ, vì vậy sẽ không có hành
+trình trên bản đồ. Cần video từ **ít nhất hai camera**, đồng hồ chính xác,
+tọa độ camera đã khảo sát và ảnh truy vấn phù hợp để thử Re-ID chéo camera.
+Mô hình OSNet dùng checkpoint của [tác giả](https://huggingface.co/kaiyangzhou/osnet);
+chưa fine-tune cho khuôn viên nên điểm tương đồng không phải bằng chứng danh tính.
+
 ### Chế độ demo hành trình
 
 Vào **Kết quả** trên Streamlit để xem `DEMO-PERSON-001`, tuyến màu đỏ trên lớp

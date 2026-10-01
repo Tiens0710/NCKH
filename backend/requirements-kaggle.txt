@@ -2,3 +2,14 @@ supabase==2.31.0
 pydantic-settings==2.15.0
 opencv-python-headless==4.12.0.88
 pillow==11.3.0
+huggingface-hub>=0.25,<2
+cython>=3,<4
+gdown>=5,<6
+yacs>=0.1.8,<1
+imageio>=2.30,<3
+h5py>=3,<4
+scipy>=1.11,<2
+tensorboard>=2.15,<3
+six>=1.16,<2
+future>=1,<2
+chardet>=5,<6

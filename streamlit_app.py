@@ -255,7 +255,8 @@ def _build_bbox_video_html(
         if (boxWidth <= 0 || boxHeight <= 0) continue;
         ctx.strokeStyle = "#ff5a24";
         ctx.strokeRect(x1, y1, boxWidth, boxHeight);
-        const label = `Người · ${(Number(detection.score || 0) * 100).toFixed(1)}%`;
+        const trackLabel = detection.track_id ? `Track ${detection.track_id}` : "Người";
+        const label = `${trackLabel} · ${(Number(detection.score || 0) * 100).toFixed(1)}%`;
         const labelHeight = fontSize * 1.55;
         const labelWidth = ctx.measureText(label).width + fontSize;
         const labelY = Math.max(0, y1 - labelHeight);
@@ -375,9 +376,10 @@ def render_live_detection_results(client: Client) -> None:
         f"Ngưỡng phát hiện: {float(detection.get('score_threshold', 0.0)):.0%}."
     )
     st.caption(
-        "Một khung bao là một người được phát hiện trong một frame; "
-        "không phải số người duy nhất. RetinaNet hiện phát hiện người, chưa thực hiện Re-ID hoặc định vị GPS."
+        "Một khung bao là một lần phát hiện, không phải số người duy nhất. "
+        "Track ID chỉ nối các frame lấy mẫu trong cùng video; OSNet tạo ứng viên Re-ID, không xác minh danh tính hay định vị GPS."
     )
+    st.metric("Track đã có vector Re-ID", detection.get("tracks_with_embeddings", 0))
     if detection.get("truncated"):
         last_time = detection.get("last_sample_time_seconds", "?")
         duration = detection.get("video_duration_seconds")
@@ -842,8 +844,8 @@ def video_page(client: Client) -> None:
 
 def search_page(client: Client) -> None:
     st.header("Tìm người")
-    st.caption("Tính năng Re-ID chưa được nối với RetinaNet trong bản demo hiện tại.")
-    st.info("Chọn ảnh, điều chỉnh ngưỡng tương đồng nếu cần, rồi bấm **Tạo truy vấn**.")
+    st.caption("Tải ảnh người cần tìm. Kaggle Worker sẽ so khớp OSNet với các track đã xử lý; kết quả là ứng viên, không phải danh tính xác minh.")
+    st.info("Ảnh nên cắt rõ toàn thân một người. Sau khi tạo truy vấn, mở **Kết quả** để xem khi Worker xử lý xong.")
     with st.form("search_form", clear_on_submit=True):
         image = st.file_uploader("Ảnh truy vấn", type=["jpg", "jpeg", "png", "webp"])
         threshold = st.slider("Ngưỡng tương đồng", -1.0, 1.0, 0.65, 0.01)
@@ -883,7 +885,7 @@ def search_page(client: Client) -> None:
                 except Exception:
                     client.storage.from_("query-images").remove([storage_path])
                     raise
-                st.success(f"Đã tạo truy vấn {query_id}.")
+                st.success("Đã gửi ảnh. Worker đang chạy sẽ tự xử lý; mở trang Kết quả để xem ứng viên.")
             except Exception as exc:
                 st.error(f"Tạo truy vấn thất bại: {exc}")
 
@@ -973,45 +975,65 @@ def results_page(client: Client) -> None:
             pass
     if active_video_id:
         render_active_video_status(client, str(active_video_id))
+    render_reid_results(client)
     render_live_detection_results(client)
-    if st.checkbox("Hiện bản đồ demo và phần truy vấn Re-ID", key="show_results_extras"):
+    with st.expander("Xem hành trình mô phỏng (không phải kết quả AI)", expanded=False):
         render_demo_results()
-        st.subheader("Kết quả truy vấn Re-ID từ Supabase")
-        try:
-            queries = (
-                client.table("search_queries")
-                .select("id,created_at,status")
-                .order("created_at", desc=True)
-                .limit(100)
-                .execute()
-                .data
-            )
-            if not queries:
-                st.info("Chưa có truy vấn.")
-                return
-            labels = {
-                f"{item['created_at']} · {item['status']} · {item['id'][:8]}": item["id"]
-                for item in queries
-            }
-            selected = st.selectbox("Truy vấn", list(labels))
-            query_id = labels[selected]
-            results = (
-                client.table("search_results")
-                .select("rank,similarity_score,tracklets(*,videos(camera_id,started_at,cameras(name,area)))")
-                .eq("query_id", query_id)
-                .order("rank")
-                .execute()
-                .data
-            )
-            if results:
-                st.dataframe(results, use_container_width=True, hide_index=True)
-            else:
-                st.info(
-                    "Chưa có kết quả AI trong Supabase. Truy vấn thật vẫn đang pending; "
-                    "phần phía trên là dữ liệu demo để xem trước giao diện."
-                )
-        except Exception as exc:
-            st.error(f"Không đọc được kết quả: {exc}")
+
+
+def render_reid_results(client: Client) -> None:
+    st.subheader("Ứng viên Re-ID từ ảnh truy vấn")
+    st.caption("So khớp bằng OSNet; một người có thể xuất hiện ở nhiều track. Cần kiểm tra lại bằng mắt trước khi kết luận.")
+    try:
+        queries = client.table("search_queries").select("id,created_at,status").order("created_at", desc=True).limit(30).execute().data
+        if not queries:
+            st.info("Chưa có ảnh truy vấn. Vào Tìm người để tải một ảnh lên.")
+            return
+        labels = [f"{row['created_at']} · {row['status']} · {row['id'][:8]}" for row in queries]
+        selected = st.selectbox("Ảnh truy vấn", labels, key="reid_query_selection")
+        query = queries[labels.index(selected)]
+        if query["status"] in ("pending", "processing"):
+            st.info("Đang chờ Kaggle Worker xử lý. Nếu phiên Kaggle đã dừng, hãy mở lại notebook; sau đó tải lại trang này.")
+            return
+        if query["status"] == "failed":
+            st.error("So khớp thất bại. Kiểm tra log Kaggle và thử ảnh khác.")
+            return
+        results = client.table("search_results").select(
+            "rank,similarity_score,tracklets(local_track_id,started_at,ended_at,representative_image_path,videos(camera_id,cameras(name,area,map_x,map_y)))"
+        ).eq("query_id", query["id"]).order("rank").execute().data
+        if not results:
+            st.info("Không có track nào vượt ngưỡng tương đồng. Thử ảnh toàn thân rõ hơn hoặc giảm ngưỡng một cách thận trọng.")
+            return
+        entries = []
+        map_points = []
+        for row in results:
+            track = row.get("tracklets") or {}
+            video = track.get("videos") or {}
+            camera = video.get("cameras") or {}
+            entries.append({
+                "Xếp hạng": row.get("rank"),
+                "Tương đồng": f"{float(row.get('similarity_score') or 0):.1%}",
+                "Camera": camera.get("name") or "—",
+                "Khu vực": camera.get("area") or "—",
+                "Xuất hiện": track.get("started_at"),
+                "Kết thúc": track.get("ended_at"),
+                "Track": track.get("local_track_id"),
+            })
+            lat, lon = camera.get("map_x"), camera.get("map_y")
+            if isinstance(lat, (int, float)) and isinstance(lon, (int, float)) and -90 <= lat <= 90 and -180 <= lon <= 180:
+                map_points.append((track.get("started_at") or "", float(lat), float(lon), camera.get("name") or "Camera"))
+        st.dataframe(entries, use_container_width=True, hide_index=True)
+        if map_points:
+            campus_map = leafmap.Map(center=(map_points[0][1], map_points[0][2]), zoom=17, draw_control=False, measure_control=False)
+            campus_map.add_basemap("SATELLITE")
+            for appeared, lat, lon, camera_name in sorted(map_points):
+                folium.Marker(location=(lat, lon), tooltip=camera_name, popup=f"{camera_name} · {appeared}").add_to(campus_map)
+            st.caption("Chỉ hiển thị vị trí camera có tọa độ đã khai báo; không suy diễn đường đi giữa các camera.")
+            campus_map.to_streamlit(height=520, add_layer_control=True)
+        else:
+            st.warning("Chưa có tọa độ camera hợp lệ. Bảng thời gian vẫn là dữ liệu thật; bản đồ sẽ hiện khi khai báo tọa độ đúng.")
+    except Exception as exc:
+        st.error(f"Không đọc được kết quả Re-ID: {exc}")
 
 
 def main() -> None:
