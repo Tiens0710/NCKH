@@ -17,10 +17,12 @@ tracking, Re-ID embedding và tìm kiếm vector.
 - Kaggle Notebook: `notebooks/retinanet_kaggle.ipynb` chạy RetinaNet theo từng
   đợt video; đây không phải backend luôn trực tuyến.
 - Streamlit: đã có bản demo một dịch vụ để triển khai nhanh lên Community Cloud.
-- Luồng demo gọn: gửi video trên web → nếu Kaggle Worker đang tắt, bấm **Run All**
-  một lần → trang Kết quả tự cập nhật trạng thái và bounding box. Xem
+- Luồng demo gọn trên **một trang Thử RetinaNet**: bấm **Dùng video mẫu** hoặc
+  tải video của bạn lên → trạng thái và kết quả bounding box xuất hiện ngay bên
+  dưới. Nếu Kaggle Worker đang tắt, mở notebook và bấm **Run All** một lần cho
+  cả đợt; trang tự cập nhật khi xử lý xong. Xem
   `notebooks/README.md` để biết cách sử dụng.
-- Demo hiện tại: trang Kết quả có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
+- Demo hiện tại: mục **Tùy chọn nâng cao → Hành trình mô phỏng** có kết quả mô phỏng và bản đồ vệ tinh Leafmap để
   trình bày tuyến di chuyển trong Campus II Đại học Cần Thơ; dữ liệu này chỉ nằm
   trên giao diện, không ghi đè kết quả AI trong Supabase.
 - Tài liệu nghiên cứu: `index.html` (bản public tại Vercel) và bản sao
