@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from contextlib import nullcontext
 from dataclasses import dataclass
+import os
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -27,12 +28,12 @@ class DetectionOptions:
             raise ValueError("score_threshold must be in (0, 1]")
         if (
             self.sample_seconds <= 0
-            or self.max_frames < 1
+            or self.max_frames < 0
             or self.max_image_side < 320
             or self.inference_batch_size < 0
         ):
             raise ValueError(
-                "sample_seconds/max_frames must be positive, max_image_side >= 320, "
+                "sample_seconds must be positive, max_frames must be 0 (full video) or greater, max_image_side >= 320, "
                 "and inference_batch_size must be 0 (auto) or greater"
             )
 
@@ -80,9 +81,11 @@ def detect_video(
     frame_step = max(1, round(fps * options.sample_seconds))
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    reported_frame_count = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     frames: list[dict[str, Any]] = []
     pending_samples: list[dict[str, Any]] = []
     frame_index = 0
+    reached_end = False
     if model_device.type == "cuda":
         torch.cuda.synchronize(model_device)
     processing_started = perf_counter()
@@ -135,9 +138,10 @@ def detect_video(
         pending_samples.clear()
 
     try:
-        while len(frames) + len(pending_samples) < options.max_frames:
+        while options.max_frames == 0 or len(frames) + len(pending_samples) < options.max_frames:
             ok, frame = capture.read()
             if not ok:
+                reached_end = True
                 break
             if frame_index % frame_step == 0:
                 original_height, original_width = frame.shape[:2]
@@ -158,6 +162,10 @@ def detect_video(
                     infer_pending_samples()
             frame_index += 1
         infer_pending_samples()
+        # Some codecs do not report frame count. Probe once when the sample cap is
+        # reached so an exactly-at-the-end video is not marked as truncated.
+        if not reached_end and reported_frame_count <= 0:
+            reached_end = not capture.read()[0]
     finally:
         capture.release()
 
@@ -172,6 +180,8 @@ def detect_video(
         "schema_version": 1,
         "model": MODEL_NAME,
         "weights": MODEL_VERSION,
+        "code_revision": os.environ.get("NCKH_CODE_REVISION"),
+        "torch_version": torch.__version__,
         "device": str(model_device),
         "score_threshold": options.score_threshold,
         "sample_seconds": options.sample_seconds,
@@ -185,6 +195,10 @@ def detect_video(
         "fps": round(fps, 3),
         "frames_read": frame_index,
         "frames_sampled": len(frames),
+        "max_frames": options.max_frames,
+        "last_sample_time_seconds": frames[-1]["time_seconds"] if frames else None,
+        "video_duration_seconds": round(reported_frame_count / fps, 3) if reported_frame_count > 0 else None,
+        "truncated": not reached_end and (reported_frame_count <= 0 or frame_index < reported_frame_count),
         "frames_with_people": sum(bool(frame["detections"]) for frame in frames),
         "person_boxes": sum(len(frame["detections"]) for frame in frames),
         "frames": frames,

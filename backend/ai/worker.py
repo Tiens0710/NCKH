@@ -95,9 +95,18 @@ def process_video(client: Client, video: dict[str, Any], detector: tuple[Any, An
             "stage": "retinanet_person_detection",
             "status": "completed",
             "model": result["model"],
+            "weights": result["weights"],
+            "code_revision": result["code_revision"],
+            "torch_version": result["torch_version"],
             "device": result["device"],
             "score_threshold": result["score_threshold"],
+            "sample_seconds": result["sample_seconds"],
+            "max_frames": result["max_frames"],
+            "max_image_side": result["max_image_side"],
             "frames_sampled": result["frames_sampled"],
+            "last_sample_time_seconds": result["last_sample_time_seconds"],
+            "video_duration_seconds": result["video_duration_seconds"],
+            "truncated": result["truncated"],
             "frames_with_people": result["frames_with_people"],
             "person_boxes": result["person_boxes"],
             "inference_batch_size": result["inference_batch_size"],
@@ -144,7 +153,7 @@ def main() -> None:
     parser.add_argument("--poll-seconds", type=float, default=15.0)
     parser.add_argument("--score-threshold", type=float, default=0.4)
     parser.add_argument("--sample-seconds", type=float, default=0.5)
-    parser.add_argument("--max-frames", type=int, default=120)
+    parser.add_argument("--max-frames", type=int, default=120, help="Maximum sampled frames; 0 processes the full video")
     parser.add_argument("--max-image-side", type=int, default=1280)
     parser.add_argument(
         "--inference-batch-size",

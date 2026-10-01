@@ -229,6 +229,11 @@ def _build_bbox_video_html(
     function drawBoxes() {
       if (!video.videoWidth || !canvas.width) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const lastSample = frames.length ? Number(frames[frames.length - 1].time_seconds ?? 0) : 0;
+      if (RESULT.truncated && video.currentTime > lastSample + Number(RESULT.sample_seconds || 0.5)) {
+        status.textContent = "Đoạn này chưa được AI quét vì đã chạm giới hạn frame.";
+        return;
+      }
       const sample = frameAt(video.currentTime);
       if (!sample) {
         status.textContent = "Chưa tới frame đầu tiên được RetinaNet phân tích.";
@@ -367,6 +372,14 @@ def render_live_detection_results(client: Client) -> None:
         "Một khung bao là một người được phát hiện trong một frame; "
         "không phải số người duy nhất. RetinaNet hiện phát hiện người, chưa thực hiện Re-ID hoặc định vị GPS."
     )
+    if detection.get("truncated"):
+        last_time = detection.get("last_sample_time_seconds", "?")
+        duration = detection.get("video_duration_seconds")
+        duration_text = f" / {duration} giây" if duration is not None else ""
+        st.warning(
+            f"AI mới quét đến khoảng {last_time} giây{duration_text} của video. "
+            "Phần còn lại chưa được phân tích vì đạt giới hạn frame trong notebook."
+        )
 
     detection_payload: dict[str, Any] | None = None
     try:
@@ -401,7 +414,7 @@ def render_live_detection_results(client: Client) -> None:
                 )
                 st.caption(
                     "Khung màu cam là kết quả RetinaNet tại frame được lấy mẫu. "
-                    "Mô hình lấy mẫu khoảng mỗi giây; khung được giữ đến lần lấy mẫu kế tiếp, "
+                    f"Mô hình lấy mẫu khoảng mỗi {detection.get('sample_seconds', 0.5)} giây; khung được giữ đến lần lấy mẫu kế tiếp, "
                     "không phải tracking liên tục."
                 )
             except Exception as exc:

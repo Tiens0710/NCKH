@@ -88,6 +88,11 @@ This can help with small or distant people and short appearances, at the cost of
 more inference work; a lower confidence threshold can also add false positives.
 At the default sampling rate, the 120-frame limit covers about 60 seconds. Box
 coordinates are converted back to the original video dimensions. The worker
+records the last sampled timestamp, reported video duration (when available),
+and whether it stopped before the video ended. Use `--max-frames 0` to sample
+the full video, accepting longer processing time. The result also records the
+PyTorch version and optional notebook code revision for reproducibility.
+The worker
 automatically batches two sampled frames per call on CUDA and one on CPU; tune
 this with `--inference-batch-size` (0 means automatic). `--amp` opts into CUDA
 mixed-precision inference; it is off by default until validated on the project's
