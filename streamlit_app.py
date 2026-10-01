@@ -1070,7 +1070,7 @@ def main() -> None:
         st.divider()
         results_page(client)
     else:
-        section = st.selectbox("Tùy chọn nâng cao", ["Camera", "Tìm người (chưa có Re-ID)", "Hành trình mô phỏng"])
+        section = st.selectbox("Tùy chọn nâng cao", ["Camera", "Tìm người bằng ảnh (Re-ID)", "Hành trình mô phỏng"])
         if section == "Camera":
             camera_page(client)
         elif section == "Hành trình mô phỏng":
