@@ -985,13 +985,19 @@ def render_reid_results(client: Client) -> None:
     st.subheader("Ứng viên Re-ID từ ảnh truy vấn")
     st.caption("So khớp bằng OSNet; một người có thể xuất hiện ở nhiều track. Cần kiểm tra lại bằng mắt trước khi kết luận.")
     try:
-        queries = client.table("search_queries").select("id,created_at,status").order("created_at", desc=True).limit(30).execute().data
+        queries = client.table("search_queries").select("id,created_at,status,filters").order("created_at", desc=True).limit(30).execute().data
         if not queries:
             st.info("Chưa có ảnh truy vấn. Vào Tìm người để tải một ảnh lên.")
             return
-        labels = [f"{row['created_at']} · {row['status']} · {row['id'][:8]}" for row in queries]
+        labels = [
+            f"{'[Bài thử] ' if (row.get('filters') or {}).get('purpose') == 'reid_smoke_test' else ''}"
+            f"{row['created_at']} · {row['status']} · {row['id'][:8]}"
+            for row in queries
+        ]
         selected = st.selectbox("Ảnh truy vấn", labels, key="reid_query_selection")
         query = queries[labels.index(selected)]
+        if (query.get("filters") or {}).get("purpose") == "reid_smoke_test":
+            st.warning("Bài thử kỹ thuật: ảnh truy vấn được lấy từ chính crop của video mẫu. Tự so khớp có thể đạt 100%; đây không phải bằng chứng nhận diện chéo camera.")
         if query["status"] in ("pending", "processing"):
             st.info("Đang chờ Kaggle Worker xử lý. Nếu phiên Kaggle đã dừng, hãy mở lại notebook; sau đó tải lại trang này.")
             return
