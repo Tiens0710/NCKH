@@ -277,6 +277,7 @@ def main() -> None:
     )
     parser.add_argument("--amp", action="store_true", help="Enable CUDA mixed-precision inference")
     parser.add_argument("--device", choices=("cpu", "cuda", "auto"), default="cpu")
+    parser.add_argument("--detector", choices=("retinanet", "rfdetr-medium"), default="retinanet")
     parser.add_argument("--enable-reid", action="store_true", help="Run OSNet tracking and Re-ID enrichment")
     parser.add_argument("--backfill-latest", action="store_true", help="Enrich one completed RetinaNet video missing Re-ID")
     args = parser.parse_args()
@@ -309,9 +310,13 @@ def main() -> None:
         if video:
             if detector is None:
                 try:
-                    detector = load_detector(args.device)
+                    if args.detector == "rfdetr-medium":
+                        from .rfdetr_detector import load_detector as load_rfdetr
+                        detector = load_rfdetr(args.device)
+                    else:
+                        detector = load_detector(args.device)
                 except Exception:
-                    LOGGER.exception("Unable to load RetinaNet; leaving video available for retry")
+                    LOGGER.exception("Unable to load %s; leaving video available for retry", args.detector)
                     metadata = dict(video.get("metadata") or {})
                     metadata["detection"] = {"stage": "retinanet_person_detection", "status": "pending"}
                     client.table("videos").update({"status": "pending", "metadata": metadata}).eq("id", video["id"]).eq("status", "processing").execute()

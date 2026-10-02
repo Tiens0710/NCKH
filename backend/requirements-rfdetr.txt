@@ -1,0 +1,2 @@
+-r requirements-kaggle.txt
+rfdetr>=1.4,<2

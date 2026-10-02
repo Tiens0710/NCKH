@@ -70,9 +70,10 @@ def detect_video(
     from PIL import Image
 
     model, transform, person_label, torch = detector or load_detector()
-    model_device = next(model.parameters()).device
-    batch_size = options.inference_batch_size or (2 if model_device.type == "cuda" else 1)
-    amp_enabled = options.use_amp and model_device.type == "cuda"
+    native_predict = hasattr(model, "predict_images")
+    model_device = model.device if native_predict else next(model.parameters()).device
+    batch_size = 1 if native_predict else options.inference_batch_size or (2 if model_device.type == "cuda" else 1)
+    amp_enabled = options.use_amp and model_device.type == "cuda" and not native_predict
     capture = cv2.VideoCapture(str(video_path))
     if not capture.isOpened():
         raise ValueError("Unable to open uploaded video")
@@ -95,14 +96,14 @@ def detect_video(
     def infer_pending_samples() -> None:
         if not pending_samples:
             return
-        model_inputs = [sample["tensor"].to(model_device) for sample in pending_samples]
+        model_inputs = [sample["tensor"] if native_predict else sample["tensor"].to(model_device) for sample in pending_samples]
         amp_context = (
             torch.autocast(device_type="cuda", dtype=torch.float16)
             if amp_enabled
             else nullcontext()
         )
         with torch.inference_mode(), amp_context:
-            predictions = model(model_inputs)
+            predictions = model.predict_images(model_inputs, options.score_threshold) if native_predict else model(model_inputs)
 
         for sample, prediction in zip(pending_samples, predictions):
             original_width = sample["original_width"]
@@ -182,8 +183,8 @@ def detect_video(
 
     return {
         "schema_version": 1,
-        "model": MODEL_NAME,
-        "weights": MODEL_VERSION,
+        "model": getattr(model, "model_name", MODEL_NAME),
+        "weights": getattr(model, "weights_version", MODEL_VERSION),
         "code_revision": os.environ.get("NCKH_CODE_REVISION"),
         "torch_version": torch.__version__,
         "device": str(model_device),
