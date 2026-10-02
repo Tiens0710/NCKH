@@ -9,6 +9,8 @@ from pathlib import Path
 from time import perf_counter
 from typing import Any
 
+from .clothing_colors import estimate_clothing_colors
+
 
 MODEL_NAME = "retinanet_resnet50_fpn_v2"
 MODEL_VERSION = "COCO_V1"
@@ -117,6 +119,7 @@ def detect_video(
                     continue
                 boxes.append({
                     "score": round(float(score), 4),
+                    "clothing_colors": estimate_clothing_colors(sample["bgr_frame"], box),
                     "xyxy": [
                         round(
                             float(value)
@@ -152,6 +155,7 @@ def detect_video(
                 image = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
                 pending_samples.append({
                     "tensor": transform(image),
+                    "bgr_frame": frame,
                     "original_width": original_width,
                     "original_height": original_height,
                     "resized_width": resized_width,
