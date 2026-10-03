@@ -193,6 +193,7 @@ def detect_video(
         "max_image_side": options.max_image_side,
         "inference_batch_size": batch_size,
         "amp_enabled": amp_enabled,
+        "inference_precision": getattr(model, "inference_precision", "mixed" if amp_enabled else "fp32"),
         "processing_seconds": round(processing_seconds, 3),
         "sampled_frames_per_second": round(len(frames) / processing_seconds, 3) if processing_seconds else 0.0,
         "width": width,

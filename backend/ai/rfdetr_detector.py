@@ -26,7 +26,7 @@ class RFDETRAdapter:
         return predictions
 
 
-def load_detector(device="auto"):
+def load_detector(device="auto", precision="fp32"):
     import torch
     from rfdetr import RFDETRMedium
     from rfdetr.assets.coco_classes import COCO_CLASSES
@@ -36,6 +36,13 @@ def load_detector(device="auto"):
         device = "cuda" if torch.cuda.is_available() else "cpu"
     if device == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA requested but unavailable")
+    if precision not in {"fp32", "fp16"}:
+        raise ValueError("precision must be fp32 or fp16")
+    if precision == "fp16" and device != "cuda":
+        raise ValueError("RF-DETR FP16 requires CUDA; select fp32 on CPU")
     model = RFDETRMedium(device=device)
+    if precision == "fp16":
+        model.inference(compile=False, batch_size=1, dtype=torch.float16)
     adapter = RFDETRAdapter(model, torch.device(device), COCO_CLASSES, version("rfdetr"))
+    adapter.inference_precision = precision
     return adapter, lambda image: image, 1, torch

@@ -267,7 +267,7 @@ def main() -> None:
     parser.add_argument("--poll-seconds", type=float, default=15.0)
     parser.add_argument("--score-threshold", type=float, default=0.4)
     parser.add_argument("--sample-seconds", type=float, default=0.5)
-    parser.add_argument("--max-frames", type=int, default=120, help="Maximum sampled frames; 0 processes the full video")
+    parser.add_argument("--max-frames", type=int, default=0, help="Maximum sampled frames; 0 processes the full video")
     parser.add_argument("--max-image-side", type=int, default=1280)
     parser.add_argument(
         "--inference-batch-size",
@@ -278,6 +278,7 @@ def main() -> None:
     parser.add_argument("--amp", action="store_true", help="Enable CUDA mixed-precision inference")
     parser.add_argument("--device", choices=("cpu", "cuda", "auto"), default="cpu")
     parser.add_argument("--detector", choices=("retinanet", "rfdetr-medium"), default="retinanet")
+    parser.add_argument("--rfdetr-precision", choices=("fp32", "fp16"), default="fp32", help="Opt-in FP16 requires CUDA and accuracy validation")
     parser.add_argument("--enable-reid", action="store_true", help="Run OSNet tracking and Re-ID enrichment")
     parser.add_argument("--backfill-latest", action="store_true", help="Enrich one completed RetinaNet video missing Re-ID")
     args = parser.parse_args()
@@ -312,7 +313,7 @@ def main() -> None:
                 try:
                     if args.detector == "rfdetr-medium":
                         from .rfdetr_detector import load_detector as load_rfdetr
-                        detector = load_rfdetr(args.device)
+                        detector = load_rfdetr(args.device, precision=args.rfdetr_precision)
                     else:
                         detector = load_detector(args.device)
                 except Exception:
