@@ -1,12 +1,15 @@
 "use client";
 
-import { FileUp, FileVideo, HardDriveUpload } from "lucide-react";
+import { ArrowUpRight, Check, FileUp, FileVideo, HardDriveUpload, Play, RefreshCw } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { EmptyState, ErrorNotice, LoadingRows } from "@/components/Feedback";
 import { PageHeader } from "@/components/PageHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { apiFetch, formatDate } from "@/lib/api";
 import type { Camera, Video } from "@/lib/types";
+
+const KAGGLE_NOTEBOOK = "https://www.kaggle.com/code/tiens0710/nckh-retinanet-worker/edit";
 
 function localDateTimeValue() {
   const now = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000);
@@ -100,6 +103,21 @@ export default function VideosPage() {
       {error ? <ErrorNotice message={error} /> : null}
       {success ? <div className="notice notice-success" role="status"><HardDriveUpload size={19} />{success}</div> : null}
 
+      <section className="worker-guide" aria-labelledby="worker-guide-title">
+        <div className="worker-guide-heading">
+          <div><p className="section-kicker">Phân tích RetinaNet</p><h2 id="worker-guide-title">Tải video lên, rồi chạy Worker</h2></div>
+          <a className="button button-secondary" href={KAGGLE_NOTEBOOK} target="_blank" rel="noreferrer">
+            <Play size={16} aria-hidden="true" /> Mở Kaggle Worker <ArrowUpRight size={15} aria-hidden="true" />
+          </a>
+        </div>
+        <ol className="worker-guide-steps">
+          <li><span>1</span><div><strong>Tải video</strong><small>Video sẽ vào hàng chờ trên Supabase.</small></div></li>
+          <li><span>2</span><div><strong>Chạy notebook</strong><small>Mở Kaggle và bấm Run All.</small></div></li>
+          <li><span>3</span><div><strong>Xem kết quả</strong><small>Quay lại đây và tải lại danh sách.</small></div></li>
+        </ol>
+        <p className="worker-guide-note"><Check size={15} aria-hidden="true" /> Trang web lưu video. Kaggle mới là nơi chạy mô hình, nên kết quả chỉ xuất hiện sau khi Worker xử lý xong.</p>
+      </section>
+
       <section className="panel upload-strip">
         <div><span className="large-icon"><FileUp size={24} /></span><div><h2>Thêm video mới</h2><p>Tối đa 48 MB trong phiên bản thử nghiệm hiện tại.</p></div></div>
         <form className="upload-form" onSubmit={handleUpload}>
@@ -111,11 +129,11 @@ export default function VideosPage() {
       </section>
 
       <section className="panel data-panel">
-        <div className="panel-heading"><div><p className="section-kicker">Kho dữ liệu</p><h2>Video đã tải lên</h2></div><span className="record-count">{videos.length} bản ghi</span></div>
+        <div className="panel-heading"><div><p className="section-kicker">Kho dữ liệu</p><h2>Video đã tải lên</h2></div><div className="overview-panel-actions"><span className="record-count">{videos.length} bản ghi</span><button className="icon-button" type="button" onClick={() => void loadData()} disabled={loading} aria-label="Tải lại danh sách video"><RefreshCw size={17} /></button></div></div>
         {loading ? <LoadingRows /> : videos.length === 0 ? <EmptyState title="Chưa có video" description="Video đầu tiên sẽ xuất hiện tại đây sau khi upload." /> : (
           <div className="table-wrap"><table><thead><tr><th>Tệp</th><th>Camera</th><th>Thời gian</th><th>Trạng thái</th><th>Phát hiện người</th></tr></thead><tbody>{videos.map((video) => {
             const detection = video.metadata?.detection as { status?: string; person_boxes?: number; frames_with_people?: number } | undefined;
-            return <tr key={video.id}><td><strong>{String(video.metadata?.original_filename ?? "Video")}</strong><small>{video.storage_path}</small></td><td>{video.cameras?.name ?? "—"}</td><td>{formatDate(video.started_at)}</td><td>{detection?.status === "completed" ? "Phát hiện xong" : <StatusBadge status={video.status} />}</td><td>{detection?.status === "completed" ? <button type="button" className="text-link detection-open" aria-expanded={selectedVideoId === video.id} onClick={() => setSelectedVideoId(selectedVideoId === video.id ? null : video.id)}>{detection.person_boxes ?? 0} khung bao · Xem tóm tắt</button> : detection?.status === "processing" ? "Đang phát hiện…" : detection?.status === "failed" ? "Phát hiện thất bại" : "Chưa xử lý"}</td></tr>;
+            return <tr key={video.id}><td><strong>{String(video.metadata?.original_filename ?? "Video")}</strong><small>{video.storage_path}</small></td><td>{video.cameras?.name ?? "-"}</td><td>{formatDate(video.started_at)}</td><td>{detection?.status === "completed" ? "Phát hiện xong" : <StatusBadge status={video.status} />}</td><td>{detection?.status === "completed" ? <button type="button" className="text-link detection-open" aria-expanded={selectedVideoId === video.id} onClick={() => setSelectedVideoId(selectedVideoId === video.id ? null : video.id)}>{detection.person_boxes ?? 0} khung bao · Xem tóm tắt</button> : detection?.status === "processing" ? "Đang phát hiện…" : detection?.status === "failed" ? "Phát hiện thất bại" : "Chưa xử lý"}</td></tr>;
           })}</tbody></table></div>
         )}
         {selectedVideo && selectedDetection ? <div className="detection-detail" aria-live="polite">

@@ -55,7 +55,7 @@ export function CampusMap({ points, selectedSequence, onSelect }: { points: Demo
         className="campus-map"
       >
         <TileLayer
-          attribution='Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics'
+          attribution='Tiles &copy; Esri - Source: Esri, Maxar, Earthstar Geographics'
           url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
         />
         <TileLayer

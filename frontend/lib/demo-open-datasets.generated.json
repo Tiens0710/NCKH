@@ -1,0 +1,244 @@
+[
+  {
+    "id": "icsens-0004",
+    "title": "i.c.sens MuVi · giao lộ 0004 · 3 camera thật",
+    "description": "Ba góc quay thật của cùng một giao lộ; cùng người đi qua nhiều góc nhìn. Ảnh trái stereo được ghép thành clip, căn theo GPS timestamp với sai lệch dưới 60 ms.",
+    "challenge": "Nhiều người · góc nhìn khác nhau · ngược sáng · giao cắt",
+    "source_name": "Uyen Nguyen (2020) — i.c.sens / LUIS, Leibniz Universität Hannover",
+    "source_url": "https://data.uni-hannover.de/en/dataset/multi-view-pedestrian-tracking",
+    "license": "CC BY-NC 3.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/3.0/",
+    "attribution": "Uyen Nguyen (2020). i.c.sens Multi-view pedestrian tracking dataset. LUIS. DOI:10.25835/0082741.",
+    "changes": "Trích chuỗi 0004, camera trái các view 1/2/3; căn timestamp gần nhất, 24 ảnh trong 6 giây, mã hóa H.264 4 FPS và thu nhỏ tối đa 960px. Không thêm bounding box; giữ nguyên làm mờ mặt sẵn có của nguồn.",
+    "simulation": false,
+    "duration_seconds": 6,
+    "cameras": [
+      {
+        "name": "Camera thật 1",
+        "file": "icsens-0004/CAM-1.mp4",
+        "size": 373033,
+        "timeline_start_seconds": 0,
+        "sync_max_error_seconds": 0.04109
+      },
+      {
+        "name": "Camera thật 2",
+        "file": "icsens-0004/CAM-2.mp4",
+        "size": 290063,
+        "timeline_start_seconds": 0,
+        "sync_max_error_seconds": 0.03715
+      },
+      {
+        "name": "Camera thật 3",
+        "file": "icsens-0004/CAM-3.mp4",
+        "size": 510134,
+        "timeline_start_seconds": 0,
+        "sync_max_error_seconds": 0.04367
+      }
+    ]
+  },
+  {
+    "id": "icsens-0000",
+    "title": "i.c.sens MuVi · giao lộ 0000 · 3 camera thật",
+    "description": "Ba góc quay thật của cùng một giao lộ; cùng người đi qua nhiều góc nhìn. Ảnh trái stereo được ghép thành clip, căn theo GPS timestamp với sai lệch dưới 60 ms.",
+    "challenge": "Nhiều người · góc nhìn khác nhau · ngược sáng · giao cắt",
+    "source_name": "Uyen Nguyen (2020) — i.c.sens / LUIS, Leibniz Universität Hannover",
+    "source_url": "https://data.uni-hannover.de/en/dataset/multi-view-pedestrian-tracking",
+    "license": "CC BY-NC 3.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/3.0/",
+    "attribution": "Uyen Nguyen (2020). i.c.sens Multi-view pedestrian tracking dataset. LUIS. DOI:10.25835/0082741.",
+    "changes": "Trích chuỗi 0000, camera trái các view 1/2/3; căn timestamp gần nhất, 24 ảnh trong 6 giây, mã hóa H.264 4 FPS và thu nhỏ tối đa 960px. Không thêm bounding box; giữ nguyên làm mờ mặt sẵn có của nguồn.",
+    "simulation": false,
+    "duration_seconds": 6,
+    "cameras": [
+      {
+        "name": "Camera thật 1",
+        "file": "icsens-0000/CAM-1.mp4",
+        "size": 357210,
+        "timeline_start_seconds": 0,
+        "sync_max_error_seconds": 0.04085
+      },
+      {
+        "name": "Camera thật 2",
+        "file": "icsens-0000/CAM-2.mp4",
+        "size": 321978,
+        "timeline_start_seconds": 0,
+        "sync_max_error_seconds": 0.0371
+      },
+      {
+        "name": "Camera thật 3",
+        "file": "icsens-0000/CAM-3.mp4",
+        "size": 756796,
+        "timeline_start_seconds": 0,
+        "sync_max_error_seconds": 0.03846
+      }
+    ]
+  },
+  {
+    "id": "personpath-00186",
+    "title": "PersonPath22 · Trung tâm thương mại",
+    "description": "Hai góc giả lập từ cùng một video thật. Đây là dữ liệu thử detection/tracking; không phải hai camera độc lập và không so khớp danh tính giữa các video gốc.",
+    "challenge": "Trong nhà · nhiều người · góc cao",
+    "source_name": "PersonPath22 — Amazon Science, Shuai et al. (ECCV 2022)",
+    "source_url": "https://amazon-science.github.io/tracking-dataset/personpath22.html",
+    "license": "CC BY-NC 4.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "attribution": "Bing Shuai, Alessandro Bergamo, Uta Buechler, Andrew Berneshawi, Alyssa Boden, Joseph Tighe. Large Scale Real-world Multi-Person Tracking, ECCV 2022.",
+    "changes": "Trích video core uid_vid_00186.mp4; cắt 8 giây từ 2.06s, giảm còn 6 FPS, thu nhỏ và cắt góc thứ hai. Không thêm bounding box. Không dùng nhận diện danh tính hoặc đặc trưng sinh trắc học.",
+    "simulation": true,
+    "duration_seconds": 8.0,
+    "cameras": [
+      {
+        "name": "Góc 1 giả lập",
+        "file": "personpath-00186/CAM-1.mp4",
+        "size": 820947,
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Góc 2 giả lập",
+        "file": "personpath-00186/CAM-2.mp4",
+        "size": 1034307,
+        "timeline_start_seconds": 30
+      }
+    ]
+  },
+  {
+    "id": "personpath-00176",
+    "title": "PersonPath22 · Đường phố chạng vạng",
+    "description": "Hai góc giả lập từ cùng một video thật. Đây là dữ liệu thử detection/tracking; không phải hai camera độc lập và không so khớp danh tính giữa các video gốc.",
+    "challenge": "Ánh sáng yếu · nhiều hướng di chuyển",
+    "source_name": "PersonPath22 — Amazon Science, Shuai et al. (ECCV 2022)",
+    "source_url": "https://amazon-science.github.io/tracking-dataset/personpath22.html",
+    "license": "CC BY-NC 4.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "attribution": "Bing Shuai, Alessandro Bergamo, Uta Buechler, Andrew Berneshawi, Alyssa Boden, Joseph Tighe. Large Scale Real-world Multi-Person Tracking, ECCV 2022.",
+    "changes": "Trích video core uid_vid_00176.mp4; cắt 8 giây từ 3.37s, giảm còn 6 FPS, thu nhỏ và cắt góc thứ hai. Không thêm bounding box. Không dùng nhận diện danh tính hoặc đặc trưng sinh trắc học.",
+    "simulation": true,
+    "duration_seconds": 8.0,
+    "cameras": [
+      {
+        "name": "Góc 1 giả lập",
+        "file": "personpath-00176/CAM-1.mp4",
+        "size": 1366375,
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Góc 2 giả lập",
+        "file": "personpath-00176/CAM-2.mp4",
+        "size": 1592847,
+        "timeline_start_seconds": 30
+      }
+    ]
+  },
+  {
+    "id": "personpath-00194",
+    "title": "PersonPath22 · Lối đi ven sông",
+    "description": "Hai góc giả lập từ cùng một video thật. Đây là dữ liệu thử detection/tracking; không phải hai camera độc lập và không so khớp danh tính giữa các video gốc.",
+    "challenge": "Ngoài trời · nhiều trang phục · che khuất",
+    "source_name": "PersonPath22 — Amazon Science, Shuai et al. (ECCV 2022)",
+    "source_url": "https://amazon-science.github.io/tracking-dataset/personpath22.html",
+    "license": "CC BY-NC 4.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "attribution": "Bing Shuai, Alessandro Bergamo, Uta Buechler, Andrew Berneshawi, Alyssa Boden, Joseph Tighe. Large Scale Real-world Multi-Person Tracking, ECCV 2022.",
+    "changes": "Trích video core uid_vid_00194.mp4; cắt 8 giây từ 1.14s, giảm còn 6 FPS, thu nhỏ và cắt góc thứ hai. Không thêm bounding box. Không dùng nhận diện danh tính hoặc đặc trưng sinh trắc học.",
+    "simulation": true,
+    "duration_seconds": 8.0,
+    "cameras": [
+      {
+        "name": "Góc 1 giả lập",
+        "file": "personpath-00194/CAM-1.mp4",
+        "size": 843608,
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Góc 2 giả lập",
+        "file": "personpath-00194/CAM-2.mp4",
+        "size": 693098,
+        "timeline_start_seconds": 30
+      }
+    ]
+  },
+  {
+    "id": "personpath-00196",
+    "title": "PersonPath22 · Quảng trường chiều tối",
+    "description": "Hai góc giả lập từ cùng một video thật. Đây là dữ liệu thử detection/tracking; không phải hai camera độc lập và không so khớp danh tính giữa các video gốc.",
+    "challenge": "Người nhỏ · thiếu sáng · cảnh rộng",
+    "source_name": "PersonPath22 — Amazon Science, Shuai et al. (ECCV 2022)",
+    "source_url": "https://amazon-science.github.io/tracking-dataset/personpath22.html",
+    "license": "CC BY-NC 4.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "attribution": "Bing Shuai, Alessandro Bergamo, Uta Buechler, Andrew Berneshawi, Alyssa Boden, Joseph Tighe. Large Scale Real-world Multi-Person Tracking, ECCV 2022.",
+    "changes": "Trích video core uid_vid_00196.mp4; cắt 8 giây từ 1.94s, giảm còn 6 FPS, thu nhỏ và cắt góc thứ hai. Không thêm bounding box. Không dùng nhận diện danh tính hoặc đặc trưng sinh trắc học.",
+    "simulation": true,
+    "duration_seconds": 8.0,
+    "cameras": [
+      {
+        "name": "Góc 1 giả lập",
+        "file": "personpath-00196/CAM-1.mp4",
+        "size": 482412,
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Góc 2 giả lập",
+        "file": "personpath-00196/CAM-2.mp4",
+        "size": 587648,
+        "timeline_start_seconds": 30
+      }
+    ]
+  },
+  {
+    "id": "personpath-00209",
+    "title": "PersonPath22 · Lối vào tòa nhà",
+    "description": "Hai góc giả lập từ cùng một video thật. Đây là dữ liệu thử detection/tracking; không phải hai camera độc lập và không so khớp danh tính giữa các video gốc.",
+    "challenge": "Người đi bộ xa/gần · bối cảnh giống khuôn viên",
+    "source_name": "PersonPath22 — Amazon Science, Shuai et al. (ECCV 2022)",
+    "source_url": "https://amazon-science.github.io/tracking-dataset/personpath22.html",
+    "license": "CC BY-NC 4.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "attribution": "Bing Shuai, Alessandro Bergamo, Uta Buechler, Andrew Berneshawi, Alyssa Boden, Joseph Tighe. Large Scale Real-world Multi-Person Tracking, ECCV 2022.",
+    "changes": "Trích video core uid_vid_00209.mp4; cắt 8 giây từ 3.96s, giảm còn 6 FPS, thu nhỏ và cắt góc thứ hai. Không thêm bounding box. Không dùng nhận diện danh tính hoặc đặc trưng sinh trắc học.",
+    "simulation": true,
+    "duration_seconds": 8.0,
+    "cameras": [
+      {
+        "name": "Góc 1 giả lập",
+        "file": "personpath-00209/CAM-1.mp4",
+        "size": 543737,
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Góc 2 giả lập",
+        "file": "personpath-00209/CAM-2.mp4",
+        "size": 657294,
+        "timeline_start_seconds": 30
+      }
+    ]
+  },
+  {
+    "id": "personpath-00191",
+    "title": "PersonPath22 · Giao thông đô thị",
+    "description": "Hai góc giả lập từ cùng một video thật. Đây là dữ liệu thử detection/tracking; không phải hai camera độc lập và không so khớp danh tính giữa các video gốc.",
+    "challenge": "Người nhỏ · phương tiện · che khuất",
+    "source_name": "PersonPath22 — Amazon Science, Shuai et al. (ECCV 2022)",
+    "source_url": "https://amazon-science.github.io/tracking-dataset/personpath22.html",
+    "license": "CC BY-NC 4.0 · ghi nguồn, phi thương mại",
+    "license_url": "https://creativecommons.org/licenses/by-nc/4.0/",
+    "attribution": "Bing Shuai, Alessandro Bergamo, Uta Buechler, Andrew Berneshawi, Alyssa Boden, Joseph Tighe. Large Scale Real-world Multi-Person Tracking, ECCV 2022.",
+    "changes": "Trích video core uid_vid_00191.mp4; cắt 8 giây từ 1.00s, giảm còn 6 FPS, thu nhỏ và cắt góc thứ hai. Không thêm bounding box. Không dùng nhận diện danh tính hoặc đặc trưng sinh trắc học.",
+    "simulation": true,
+    "duration_seconds": 8.0,
+    "cameras": [
+      {
+        "name": "Góc 1 giả lập",
+        "file": "personpath-00191/CAM-1.mp4",
+        "size": 930630,
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Góc 2 giả lập",
+        "file": "personpath-00191/CAM-2.mp4",
+        "size": 1024477,
+        "timeline_start_seconds": 30
+      }
+    ]
+  }
+]

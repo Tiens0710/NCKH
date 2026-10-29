@@ -66,7 +66,7 @@ export function DemoResults() {
       <div className="notice notice-demo" role="note">
         <ShieldCheck size={19} aria-hidden="true" />
         <div>
-          <strong>Dữ liệu minh họa — chưa phải kết quả AI thật</strong>
+          <strong>Dữ liệu minh họa, chưa phải kết quả AI thật</strong>
           <p>Tuyến màu đỏ, các mốc camera và độ tương đồng 92% chỉ dùng để kiểm tra giao diện.</p>
         </div>
       </div>
@@ -74,7 +74,7 @@ export function DemoResults() {
       <section className="demo-metric-grid" aria-label="Tóm tắt kết quả demo">
         <DemoMetric label="Độ tương đồng" value="92%" detail="Vượt ngưỡng truy vấn" />
         <DemoMetric label="Camera đi qua" value="4" detail="2 camera · 2 mốc nội suy" />
-        <DemoMetric label="Thời lượng" value={DEMO_QUERY.duration} detail="08:15:10 — 08:18:27" />
+        <DemoMetric label="Thời lượng" value={DEMO_QUERY.duration} detail="08:15:10 - 08:18:27" />
         <DemoMetric label="Định danh" value={DEMO_QUERY.personId} detail="Mô phỏng Re-ID" compact />
       </section>
 
@@ -84,7 +84,7 @@ export function DemoResults() {
           <div>
             <p className="section-kicker">Ảnh truy vấn</p>
             <h2>Người mặc áo xanh</h2>
-            <p>{DEMO_QUERY.campus} · tìm trong khung giờ 08:00–09:00</p>
+            <p>{DEMO_QUERY.campus} · tìm trong khung giờ 08:00-09:00</p>
           </div>
         </div>
         <span className="result-status"><CheckCircle2 size={16} aria-hidden="true" />Đã hoàn tất</span>

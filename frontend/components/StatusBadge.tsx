@@ -3,6 +3,7 @@ const labels: Record<string, string> = {
   processing: "Đang xử lý",
   completed: "Hoàn thành",
   failed: "Thất bại",
+  uploaded: "Đã tải lên",
 };
 
 export function StatusBadge({ status }: { status: string }) {
@@ -13,4 +14,3 @@ export function StatusBadge({ status }: { status: string }) {
     </span>
   );
 }
-

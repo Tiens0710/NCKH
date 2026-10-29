@@ -1,0 +1,1636 @@
+{
+  "schema_version": "1.1",
+  "simulation": true,
+  "provenance": "Synthetic clips assembled from selected MARS identity 0005 cropped-person images; not original CCTV video.",
+  "appearance_method": "upper_lower_hsv_histogram_v1",
+  "links": [
+    {
+      "from_track": "CAM-5:0",
+      "to_track": "CAM-3:0",
+      "global_person_id": "P0001",
+      "similarity": 0.91338,
+      "status": "candidate",
+      "gap_seconds": 14.333
+    }
+  ],
+  "metrics": {
+    "sampled_frames": 36,
+    "processing_seconds": 2.642,
+    "inference_seconds": 1.861,
+    "processing_fps": 13.626,
+    "inference_fps": 19.345
+  },
+  "mode": "recorded_inference",
+  "detector": {
+    "name": "RF-DETR Medium",
+    "device": "cuda",
+    "fine_tuned": false
+  },
+  "config": {
+    "frame_stride": 1,
+    "detection_threshold": 0.25,
+    "match_threshold": 0.9
+  },
+  "source": {
+    "name": "MARS",
+    "url": "https://zheng-lab.cecs.anu.edu.au/Project/project_mars.html"
+  },
+  "cameras": [
+    {
+      "camera_id": "CAM-5",
+      "name": "MARS source camera 5, identity 0005, tracklet 176",
+      "width": 640,
+      "height": 384,
+      "fps": 6.0,
+      "duration_seconds": 2.0,
+      "timeline_start_seconds": 0.0,
+      "frames_sampled": 12,
+      "frames": [
+        {
+          "frame_index": 0,
+          "time_seconds": 0.0,
+          "detections": [
+            {
+              "xyxy": [
+                250.64727783203125,
+                12.02691650390625,
+                391.17303466796875,
+                371.0546875
+              ],
+              "score": 0.91739,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.838
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.463
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            }
+          ]
+        },
+        {
+          "frame_index": 1,
+          "time_seconds": 0.166667,
+          "detections": [
+            {
+              "xyxy": [
+                251.20465087890625,
+                12.489051818847656,
+                388.1495361328125,
+                367.93048095703125
+              ],
+              "score": 0.87737,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.871
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.407
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 2,
+          "time_seconds": 0.333333,
+          "detections": [
+            {
+              "xyxy": [
+                238.69468688964844,
+                11.156776428222656,
+                375.60791015625,
+                361.615966796875
+              ],
+              "score": 0.89862,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.811
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.411
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 3,
+          "time_seconds": 0.5,
+          "detections": [
+            {
+              "xyxy": [
+                276.3009033203125,
+                14.988327026367188,
+                406.6068115234375,
+                370.00830078125
+              ],
+              "score": 0.90683,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.68
+                },
+                "lower": {
+                  "name": "unknown",
+                  "label": "chưa rõ",
+                  "dominant_fraction": 0.335
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            },
+            {
+              "xyxy": [
+                233.2454833984375,
+                49.39076232910156,
+                301.27740478515625,
+                189.22735595703125
+              ],
+              "score": 0.4632,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.65
+                },
+                "lower": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.562
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            },
+            {
+              "xyxy": [
+                247.89846801757812,
+                49.397796630859375,
+                301.4278564453125,
+                147.0728759765625
+              ],
+              "score": 0.37224,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.467
+                },
+                "lower": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.673
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            },
+            {
+              "xyxy": [
+                248.53579711914062,
+                49.52703094482422,
+                300.96929931640625,
+                106.03722381591797
+              ],
+              "score": 0.3174,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.367
+                },
+                "lower": {
+                  "name": "white",
+                  "label": "trắng",
+                  "dominant_fraction": 0.455
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            }
+          ]
+        },
+        {
+          "frame_index": 4,
+          "time_seconds": 0.666667,
+          "detections": [
+            {
+              "xyxy": [
+                278.10504150390625,
+                11.66257095336914,
+                404.0481872558594,
+                358.54876708984375
+              ],
+              "score": 0.8853,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.708
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.41
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 5,
+          "time_seconds": 0.833333,
+          "detections": [
+            {
+              "xyxy": [
+                274.25238037109375,
+                11.080741882324219,
+                404.0982666015625,
+                369.11016845703125
+              ],
+              "score": 0.90221,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.674
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.386
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 6,
+          "time_seconds": 1.0,
+          "detections": [
+            {
+              "xyxy": [
+                269.2580871582031,
+                10.76784896850586,
+                402.62347412109375,
+                367.8825988769531
+              ],
+              "score": 0.90394,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.69
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.369
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 7,
+          "time_seconds": 1.166667,
+          "detections": [
+            {
+              "xyxy": [
+                267.59625244140625,
+                11.626934051513672,
+                402.3696594238281,
+                363.14215087890625
+              ],
+              "score": 0.90358,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.697
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.352
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 8,
+          "time_seconds": 1.333333,
+          "detections": [
+            {
+              "xyxy": [
+                259.9450378417969,
+                12.12692642211914,
+                397.35882568359375,
+                369.11541748046875
+              ],
+              "score": 0.89639,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.682
+                },
+                "lower": {
+                  "name": "unknown",
+                  "label": "chưa rõ",
+                  "dominant_fraction": 0.276
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 9,
+          "time_seconds": 1.5,
+          "detections": [
+            {
+              "xyxy": [
+                237.58985900878906,
+                14.552364349365234,
+                395.9381103515625,
+                350.9605407714844
+              ],
+              "score": 0.92946,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.974
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.604
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 10,
+          "time_seconds": 1.666667,
+          "detections": [
+            {
+              "xyxy": [
+                245.08421325683594,
+                12.505428314208984,
+                391.5748596191406,
+                353.6941223144531
+              ],
+              "score": 0.91232,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.816
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.502
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 11,
+          "time_seconds": 1.833333,
+          "detections": [
+            {
+              "xyxy": [
+                253.5602569580078,
+                12.550472259521484,
+                402.34442138671875,
+                353.648193359375
+              ],
+              "score": 0.92086,
+              "local_track_id": 0,
+              "track_key": "CAM-5:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.73
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.392
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "new_candidate"
+            },
+            {
+              "xyxy": [
+                366.48974609375,
+                55.170005798339844,
+                411.46319580078125,
+                230.42922973632812
+              ],
+              "score": 0.51697,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.714
+                },
+                "lower": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.93
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            },
+            {
+              "xyxy": [
+                366.6167907714844,
+                55.12232208251953,
+                410.8306579589844,
+                154.9783172607422
+              ],
+              "score": 0.38453,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.576
+                },
+                "lower": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.788
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            }
+          ]
+        }
+      ],
+      "media_path": "CAM-5.mp4"
+    },
+    {
+      "camera_id": "CAM-2",
+      "name": "MARS source camera 2, identity 0005, tracklet 62",
+      "width": 640,
+      "height": 384,
+      "fps": 6.0,
+      "duration_seconds": 2.0,
+      "timeline_start_seconds": 8.0,
+      "frames_sampled": 12,
+      "frames": [
+        {
+          "frame_index": 0,
+          "time_seconds": 0.0,
+          "detections": [
+            {
+              "xyxy": [
+                239.94064331054688,
+                12.742115020751953,
+                365.7043151855469,
+                352.77838134765625
+              ],
+              "score": 0.92453,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.659
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.539
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            }
+          ]
+        },
+        {
+          "frame_index": 1,
+          "time_seconds": 0.166667,
+          "detections": [
+            {
+              "xyxy": [
+                242.47802734375,
+                12.773128509521484,
+                367.3472595214844,
+                358.97332763671875
+              ],
+              "score": 0.91419,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.656
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.532
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 2,
+          "time_seconds": 0.333333,
+          "detections": [
+            {
+              "xyxy": [
+                238.192138671875,
+                10.985847473144531,
+                382.217041015625,
+                370.8594055175781
+              ],
+              "score": 0.92549,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.664
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.648
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 3,
+          "time_seconds": 0.5,
+          "detections": [
+            {
+              "xyxy": [
+                240.4586944580078,
+                11.993694305419922,
+                372.8905029296875,
+                360.70501708984375
+              ],
+              "score": 0.92308,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.673
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.646
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 4,
+          "time_seconds": 0.666667,
+          "detections": [
+            {
+              "xyxy": [
+                236.39944458007812,
+                10.122905731201172,
+                380.84222412109375,
+                374.17694091796875
+              ],
+              "score": 0.93934,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.783
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.428
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 5,
+          "time_seconds": 0.833333,
+          "detections": [
+            {
+              "xyxy": [
+                228.02993774414062,
+                10.153427124023438,
+                410.7516784667969,
+                367.05792236328125
+              ],
+              "score": 0.9581,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.986
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.605
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 6,
+          "time_seconds": 1.0,
+          "detections": [
+            {
+              "xyxy": [
+                228.46885681152344,
+                11.252391815185547,
+                410.6290283203125,
+                365.486083984375
+              ],
+              "score": 0.96628,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.996
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.583
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 7,
+          "time_seconds": 1.166667,
+          "detections": [
+            {
+              "xyxy": [
+                227.94921875,
+                10.754344940185547,
+                411.3537292480469,
+                373.5841064453125
+              ],
+              "score": 0.96115,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.947
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.633
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 8,
+          "time_seconds": 1.333333,
+          "detections": [
+            {
+              "xyxy": [
+                239.173583984375,
+                10.73935317993164,
+                412.4537658691406,
+                370.22930908203125
+              ],
+              "score": 0.93711,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.979
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.779
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            },
+            {
+              "xyxy": [
+                365.54296875,
+                183.5143585205078,
+                411.8565368652344,
+                369.1804504394531
+              ],
+              "score": 0.35654,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.924
+                },
+                "lower": {
+                  "name": "brown",
+                  "label": "nâu",
+                  "dominant_fraction": 0.678
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            }
+          ]
+        },
+        {
+          "frame_index": 9,
+          "time_seconds": 1.5,
+          "detections": [
+            {
+              "xyxy": [
+                229.5039520263672,
+                11.28094482421875,
+                411.1263427734375,
+                369.5486755371094
+              ],
+              "score": 0.96317,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 1.0
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.775
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 10,
+          "time_seconds": 1.666667,
+          "detections": [
+            {
+              "xyxy": [
+                254.5512237548828,
+                12.393436431884766,
+                381.0513916015625,
+                373.45220947265625
+              ],
+              "score": 0.91751,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.663
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.605
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 11,
+          "time_seconds": 1.833333,
+          "detections": [
+            {
+              "xyxy": [
+                237.86410522460938,
+                12.073871612548828,
+                365.8061218261719,
+                374.72467041015625
+              ],
+              "score": 0.93175,
+              "local_track_id": 0,
+              "track_key": "CAM-2:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.66
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.631
+                }
+              },
+              "global_person_id": "P0002",
+              "association_status": "new_candidate"
+            }
+          ]
+        }
+      ],
+      "media_path": "CAM-2.mp4"
+    },
+    {
+      "camera_id": "CAM-3",
+      "name": "MARS source camera 3, identity 0005, tracklet 76",
+      "width": 640,
+      "height": 384,
+      "fps": 6.0,
+      "duration_seconds": 2.0,
+      "timeline_start_seconds": 16.0,
+      "frames_sampled": 12,
+      "frames": [
+        {
+          "frame_index": 0,
+          "time_seconds": 0.0,
+          "detections": [
+            {
+              "xyxy": [
+                229.346435546875,
+                37.70241165161133,
+                404.76995849609375,
+                350.3936767578125
+              ],
+              "score": 0.95384,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.88
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.756
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            }
+          ]
+        },
+        {
+          "frame_index": 1,
+          "time_seconds": 0.166667,
+          "detections": [
+            {
+              "xyxy": [
+                238.05419921875,
+                29.366397857666016,
+                387.2627258300781,
+                333.7886962890625
+              ],
+              "score": 0.92475,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.891
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.855
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 2,
+          "time_seconds": 0.333333,
+          "detections": [
+            {
+              "xyxy": [
+                230.4072723388672,
+                33.82971954345703,
+                399.4793701171875,
+                345.5144348144531
+              ],
+              "score": 0.91366,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.978
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.92
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 3,
+          "time_seconds": 0.5,
+          "detections": [
+            {
+              "xyxy": [
+                239.19216918945312,
+                30.363555908203125,
+                409.2247314453125,
+                360.67950439453125
+              ],
+              "score": 0.94889,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.903
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.881
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 4,
+          "time_seconds": 0.666667,
+          "detections": [
+            {
+              "xyxy": [
+                229.00262451171875,
+                28.994075775146484,
+                398.65716552734375,
+                355.13092041015625
+              ],
+              "score": 0.93735,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.973
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.96
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            },
+            {
+              "xyxy": [
+                388.61334228515625,
+                69.8747787475586,
+                410.3927001953125,
+                136.56631469726562
+              ],
+              "score": 0.45008,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.544
+                },
+                "lower": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.919
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            },
+            {
+              "xyxy": [
+                384.8514404296875,
+                69.59467315673828,
+                411.1287841796875,
+                169.46231079101562
+              ],
+              "score": 0.38572,
+              "local_track_id": null,
+              "track_key": null,
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.493
+                },
+                "lower": {
+                  "name": "gray",
+                  "label": "xám",
+                  "dominant_fraction": 0.768
+                }
+              },
+              "global_person_id": null,
+              "association_status": "confirming"
+            }
+          ]
+        },
+        {
+          "frame_index": 5,
+          "time_seconds": 0.833333,
+          "detections": [
+            {
+              "xyxy": [
+                229.78533935546875,
+                23.546184539794922,
+                410.00732421875,
+                357.0537109375
+              ],
+              "score": 0.9586,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.915
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.834
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 6,
+          "time_seconds": 1.0,
+          "detections": [
+            {
+              "xyxy": [
+                229.128173828125,
+                18.333206176757812,
+                410.6341552734375,
+                354.64501953125
+              ],
+              "score": 0.95871,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.995
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.934
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 7,
+          "time_seconds": 1.166667,
+          "detections": [
+            {
+              "xyxy": [
+                228.92478942871094,
+                14.374649047851562,
+                409.58355712890625,
+                362.71282958984375
+              ],
+              "score": 0.95636,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.95
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.842
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 8,
+          "time_seconds": 1.333333,
+          "detections": [
+            {
+              "xyxy": [
+                229.31607055664062,
+                15.193267822265625,
+                410.6891174316406,
+                347.05218505859375
+              ],
+              "score": 0.96018,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.934
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.875
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 9,
+          "time_seconds": 1.5,
+          "detections": [
+            {
+              "xyxy": [
+                228.49334716796875,
+                12.094379425048828,
+                411.8499755859375,
+                359.0025329589844
+              ],
+              "score": 0.95464,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.978
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.837
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 10,
+          "time_seconds": 1.666667,
+          "detections": [
+            {
+              "xyxy": [
+                228.18240356445312,
+                11.988956451416016,
+                411.6270751953125,
+                367.9427490234375
+              ],
+              "score": 0.96164,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.955
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.899
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        },
+        {
+          "frame_index": 11,
+          "time_seconds": 1.833333,
+          "detections": [
+            {
+              "xyxy": [
+                228.60885620117188,
+                9.925769805908203,
+                411.917724609375,
+                365.4544372558594
+              ],
+              "score": 0.96512,
+              "local_track_id": 0,
+              "track_key": "CAM-3:0",
+              "clothing_colors": {
+                "method": "central_body_hsv_v2",
+                "approximate": true,
+                "upper": {
+                  "name": "black",
+                  "label": "đen/tối",
+                  "dominant_fraction": 0.999
+                },
+                "lower": {
+                  "name": "blue",
+                  "label": "xanh dương",
+                  "dominant_fraction": 0.859
+                }
+              },
+              "global_person_id": "P0001",
+              "association_status": "candidate"
+            }
+          ]
+        }
+      ],
+      "media_path": "CAM-3.mp4"
+    }
+  ],
+  "tracks": [
+    {
+      "track_key": "CAM-5:0",
+      "camera_id": "CAM-5",
+      "local_track_id": 0,
+      "global_person_id": "P0001",
+      "association_status": "new_candidate",
+      "started_seconds": 0.16666666666666666,
+      "ended_seconds": 1.8333333333333333,
+      "sample_count": 11,
+      "best_score": 0.9294580221176147,
+      "best_similarity": null,
+      "clothing_colors": {
+        "method": "central_body_hsv_temporal_vote_v2",
+        "approximate": true,
+        "observations": 11,
+        "upper": {
+          "name": "black",
+          "label": "đen/tối",
+          "vote_fraction": 1.0,
+          "supporting_observations": 11,
+          "valid_observations": 11,
+          "mean_dominant_fraction": 0.758,
+          "alternatives": [
+            {
+              "name": "black",
+              "label": "đen/tối",
+              "count": 11
+            }
+          ]
+        },
+        "lower": {
+          "name": "blue",
+          "label": "xanh dương",
+          "vote_fraction": 0.545,
+          "supporting_observations": 6,
+          "valid_observations": 9,
+          "mean_dominant_fraction": 0.437,
+          "alternatives": [
+            {
+              "name": "blue",
+              "label": "xanh dương",
+              "count": 6
+            },
+            {
+              "name": "black",
+              "label": "đen/tối",
+              "count": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "track_key": "CAM-2:0",
+      "camera_id": "CAM-2",
+      "local_track_id": 0,
+      "global_person_id": "P0002",
+      "association_status": "new_candidate",
+      "started_seconds": 8.166666666666666,
+      "ended_seconds": 9.833333333333334,
+      "sample_count": 11,
+      "best_score": 0.9662756323814392,
+      "best_similarity": 0.7267605662345886,
+      "clothing_colors": {
+        "method": "central_body_hsv_temporal_vote_v2",
+        "approximate": true,
+        "observations": 11,
+        "upper": {
+          "name": "black",
+          "label": "đen/tối",
+          "vote_fraction": 1.0,
+          "supporting_observations": 11,
+          "valid_observations": 11,
+          "mean_dominant_fraction": 0.819,
+          "alternatives": [
+            {
+              "name": "black",
+              "label": "đen/tối",
+              "count": 11
+            }
+          ]
+        },
+        "lower": {
+          "name": "blue",
+          "label": "xanh dương",
+          "vote_fraction": 0.545,
+          "supporting_observations": 6,
+          "valid_observations": 11,
+          "mean_dominant_fraction": 0.582,
+          "alternatives": [
+            {
+              "name": "blue",
+              "label": "xanh dương",
+              "count": 6
+            },
+            {
+              "name": "black",
+              "label": "đen/tối",
+              "count": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "track_key": "CAM-3:0",
+      "camera_id": "CAM-3",
+      "local_track_id": 0,
+      "global_person_id": "P0001",
+      "association_status": "candidate",
+      "started_seconds": 16.166666666666668,
+      "ended_seconds": 17.833333333333332,
+      "sample_count": 11,
+      "best_score": 0.9651229977607727,
+      "best_similarity": 0.9133758544921875,
+      "clothing_colors": {
+        "method": "central_body_hsv_temporal_vote_v2",
+        "approximate": true,
+        "observations": 11,
+        "upper": {
+          "name": "black",
+          "label": "đen/tối",
+          "vote_fraction": 1.0,
+          "supporting_observations": 11,
+          "valid_observations": 11,
+          "mean_dominant_fraction": 0.952,
+          "alternatives": [
+            {
+              "name": "black",
+              "label": "đen/tối",
+              "count": 11
+            }
+          ]
+        },
+        "lower": {
+          "name": "blue",
+          "label": "xanh dương",
+          "vote_fraction": 1.0,
+          "supporting_observations": 11,
+          "valid_observations": 11,
+          "mean_dominant_fraction": 0.881,
+          "alternatives": [
+            {
+              "name": "blue",
+              "label": "xanh dương",
+              "count": 11
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -19,6 +19,7 @@ const navigation = [
   { href: "/", label: "Tổng quan", icon: ChartNoAxesCombined },
   { href: "/cameras", label: "Camera", icon: Camera },
   { href: "/videos", label: "Video", icon: FileVideo },
+  { href: "/multicam", label: "Demo đa camera", icon: Camera },
   { href: "/search", label: "Tìm kiếm người", icon: Search },
   { href: "/results/demo", label: "Kết quả demo", icon: MapPinned },
 ];
@@ -30,6 +31,8 @@ function isCurrentPath(pathname: string, href: string) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  if (pathname === "/demo" || pathname.startsWith("/workspace")) return children;
 
   return (
     <div className="app-shell">
@@ -58,7 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </button>
 
         <nav aria-label="Điều hướng chính">
-          <p className="nav-label">Không gian làm việc</p>
+          <p className="nav-label">Chức năng</p>
           <ul className="nav-list">
             {navigation.map((item) => {
               const Icon = item.icon;
@@ -81,9 +84,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className="sidebar-foot">
-          <span className="pulse-dot" aria-hidden="true" />
           <div>
-            <strong>Research prototype</strong>
+            <strong>Bản demo nghiên cứu</strong>
             <small>Supabase · FastAPI · Next.js</small>
           </div>
         </div>
@@ -110,8 +112,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Menu size={22} />
           </button>
           <div className="topbar-title">
-            <span>Hệ thống truy vết đa camera</span>
-            <small>Phân tích người bất thường bằng Re-ID</small>
+            <span>Outlier Re-ID</span>
+            <small>Quản lý video và kết quả phát hiện người</small>
           </div>
           <ConnectionBadge />
         </header>

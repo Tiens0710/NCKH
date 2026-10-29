@@ -1,0 +1,177 @@
+[
+  {
+    "id": "epfl-campus",
+    "title": "EPFL Campus · người đi bộ ngoài khuôn viên",
+    "description": "Ba camera thật, đồng thời trong khuôn viên EPFL; người đi bộ nhỏ trong ảnh và góc nhìn khác nhau.",
+    "challenge": "Ngoài trời · người nhỏ · góc nhìn",
+    "source_name": "CVLab – EPFL",
+    "source_url": "https://www.epfl.ch/labs/cvlab/data/data-pom-index-php/",
+    "license": "Copyright CVLab EPFL · research use only",
+    "simulation": false,
+    "duration_seconds": 12,
+    "start_seconds": 35,
+    "cameras": [
+      {
+        "name": "Camera 1 (nguồn c0)",
+        "file": "epfl-campus/CAM-1.mp4",
+        "size": 306138,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video1/www/campus4-c0.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 2 (nguồn c1)",
+        "file": "epfl-campus/CAM-2.mp4",
+        "size": 354144,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video1/www/campus4-c1.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 3 (nguồn c2)",
+        "file": "epfl-campus/CAM-3.mp4",
+        "size": 432988,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video1/www/campus4-c2.avi",
+        "timeline_start_seconds": 0
+      }
+    ]
+  },
+  {
+    "id": "epfl-laboratory",
+    "title": "EPFL Laboratory · nhiều người trong phòng",
+    "description": "Ba camera thật trong phòng thí nghiệm; cảnh nhiều người đi lại và che khuất nhau.",
+    "challenge": "Trong nhà · nhiều người · che khuất",
+    "source_name": "CVLab – EPFL",
+    "source_url": "https://www.epfl.ch/labs/cvlab/data/data-pom-index-php/",
+    "license": "Copyright CVLab EPFL · research use only",
+    "simulation": false,
+    "duration_seconds": 12,
+    "start_seconds": 70,
+    "cameras": [
+      {
+        "name": "Camera 1 (nguồn c0)",
+        "file": "epfl-laboratory/CAM-1.mp4",
+        "size": 1106658,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video1/www/6p-c0.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 2 (nguồn c1)",
+        "file": "epfl-laboratory/CAM-2.mp4",
+        "size": 1190439,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video1/www/6p-c1.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 3 (nguồn c2)",
+        "file": "epfl-laboratory/CAM-3.mp4",
+        "size": 1209960,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video1/www/6p-c2.avi",
+        "timeline_start_seconds": 0
+      }
+    ]
+  },
+  {
+    "id": "epfl-terrace",
+    "title": "EPFL Terrace · sân ngoài trời",
+    "description": "Ba camera thật quan sát cùng sân ngoài trời, nhiều hướng di chuyển và kích thước người khác nhau.",
+    "challenge": "Ngoài trời · giao cắt · thay đổi tỷ lệ",
+    "source_name": "CVLab – EPFL",
+    "source_url": "https://www.epfl.ch/labs/cvlab/data/data-pom-index-php/",
+    "license": "Copyright CVLab EPFL · research use only",
+    "simulation": false,
+    "duration_seconds": 12,
+    "start_seconds": 45,
+    "cameras": [
+      {
+        "name": "Camera 1 (nguồn c0)",
+        "file": "epfl-terrace/CAM-1.mp4",
+        "size": 430833,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video3/www/terrace1-c0.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 2 (nguồn c1)",
+        "file": "epfl-terrace/CAM-2.mp4",
+        "size": 389573,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video3/www/terrace1-c1.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 3 (nguồn c2)",
+        "file": "epfl-terrace/CAM-3.mp4",
+        "size": 426493,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video3/www/terrace1-c2.avi",
+        "timeline_start_seconds": 0
+      }
+    ]
+  },
+  {
+    "id": "epfl-passageway",
+    "title": "EPFL Passageway · đường hầm thiếu sáng",
+    "description": "Ba camera thật ở lối đi ngầm; ánh sáng yếu và chất lượng video thấp là thử thách cho phát hiện người, màu trang phục.",
+    "challenge": "Thiếu sáng · nhiễu · video thấp phân giải",
+    "source_name": "CVLab – EPFL",
+    "source_url": "https://www.epfl.ch/labs/cvlab/data/data-pom-index-php/",
+    "license": "Copyright CVLab EPFL · research use only",
+    "simulation": false,
+    "duration_seconds": 12,
+    "start_seconds": 40,
+    "cameras": [
+      {
+        "name": "Camera 1 (nguồn c0)",
+        "file": "epfl-passageway/CAM-1.mp4",
+        "size": 320994,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video2/www/passageway1-c0.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 2 (nguồn c1)",
+        "file": "epfl-passageway/CAM-2.mp4",
+        "size": 312876,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video2/www/passageway1-c1.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 3 (nguồn c2)",
+        "file": "epfl-passageway/CAM-3.mp4",
+        "size": 315674,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video2/www/passageway1-c2.avi",
+        "timeline_start_seconds": 0
+      }
+    ]
+  },
+  {
+    "id": "epfl-basketball",
+    "title": "EPFL Basketball · chuyển động nhanh",
+    "description": "Ba camera thật quay buổi tập bóng rổ; nhiều người chuyển động nhanh và trang phục có thể giống nhau.",
+    "challenge": "Thể thao · chuyển động nhanh · đồng phục",
+    "source_name": "CVLab – EPFL",
+    "source_url": "https://www.epfl.ch/labs/cvlab/data/data-pom-index-php/",
+    "license": "Copyright CVLab EPFL · research use only",
+    "simulation": false,
+    "duration_seconds": 12,
+    "start_seconds": 35,
+    "cameras": [
+      {
+        "name": "Camera 1 (nguồn c0)",
+        "file": "epfl-basketball/CAM-1.mp4",
+        "size": 430321,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video2/www/match5-c0.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 2 (nguồn c1)",
+        "file": "epfl-basketball/CAM-2.mp4",
+        "size": 382352,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video2/www/match5-c1.avi",
+        "timeline_start_seconds": 0
+      },
+      {
+        "name": "Camera 3 (nguồn c2)",
+        "file": "epfl-basketball/CAM-3.mp4",
+        "size": 420889,
+        "source_url": "https://documents.epfl.ch/groups/c/cv/cvlab-pom-video2/www/match5-c2.avi",
+        "timeline_start_seconds": 0
+      }
+    ]
+  }
+]
