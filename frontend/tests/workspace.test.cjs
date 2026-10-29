@@ -33,7 +33,7 @@ function fixture() {
       module: target, exports: target.exports,
       require: name => name === 'server-only' ? {} : name.startsWith('.') ? load(path.resolve(path.dirname(absolute), name.endsWith('.json') ? name : name + '.ts')) : require(name),
       process: { env: { SUPABASE_URL: 'https://storage.test', SUPABASE_SECRET_KEY: 'admin-test', MULTICAM_WORKER_TOKEN: 'worker-test' } },
-      fetch, Response, Request, AbortSignal, Buffer, console,
+      fetch, Response, Request, AbortSignal, Buffer, console, URL,
     });
     return target.exports;
   }
@@ -112,4 +112,18 @@ test('basic workspace creation and camera CRUD do not require an online GPU', as
   assert.equal(await f.queue.heartbeat(), false);
   await f.store.mutateWorkspace(request(access.token), owner, { action: 'save_camera', camera });
   assert.equal((await f.store.snapshot(owner)).cameras.length, 1);
+});
+
+test('camera protocols persist validated HLS and RTSP references without saving RTSP credentials', async () => {
+ const f=fixture(), {access,owner}=await setup(f);
+ const save=connection=>f.store.mutateWorkspace(request(access.token),owner,{action:'save_camera',camera:{...camera,source:'hls',connection}});
+ await save({protocol:'hls',stream_url:'https://camera.example/stream.m3u8',password:'must-not-persist'});
+ const item=(await f.store.snapshot(owner)).cameras[0];
+ assert.deepEqual(JSON.parse(JSON.stringify(item.connection)),{protocol:'hls',stream_url:'https://camera.example/stream.m3u8'});
+ for(const stream_url of ['rtsp://admin:secret@192.168.1.2/live','http://camera.example/a.m3u8','https://admin:secret@camera.example/a.m3u8','javascript:alert(1)'])
+  await assert.rejects(save({protocol:'hls',stream_url}));
+ await assert.rejects(save({protocol:'rtsp',stream_url:'https://camera.example/a.m3u8'}));
+ const rtsp=await f.store.mutateWorkspace(request(access.token),owner,{action:'save_camera',camera:{...camera,source:'rtsp',connection:{protocol:'rtsp',rtsp_env:'GATE_RTSP',password:'do-not-save'}}});
+ assert.equal(rtsp.camera.connection.rtsp_env,'GATE_RTSP');assert.equal('password' in rtsp.camera.connection,false);
+ await assert.rejects(f.store.mutateWorkspace(request(access.token),owner,{action:'save_camera',camera:{...camera,source:'rtsp',connection:{protocol:'rtsp',rtsp_env:'rtsp://admin:secret@camera/live'}}}));
 });

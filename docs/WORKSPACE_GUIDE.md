@@ -66,6 +66,8 @@ liên kết phi địa lý. Dữ liệu MARS không được gán vị trí tạ
 
 ## Bản đồ điều tra tương tác
 
+Bản đồ giữ màu gốc OpenStreetMap. Khung ngoài và bảng video có viền nhẹ; mở bản đồ không tự tô viền vào thẻ chọn chế độ.
+
 Trong **Xem camera**, bấm **Mở bản đồ điều tra** trên bản đồ thu nhỏ.
 
 - **Khuôn viên**: bấm vị trí để xem tọa độ; bấm camera để mở thẻ video và ảnh bằng chứng.
@@ -74,6 +76,14 @@ Trong **Xem camera**, bấm **Mở bản đồ điều tra** trên bản đồ t
 - **Thử bố trí camera trên bản đồ**: chọn camera rồi bấm vị trí. Vị trí này chỉ là minh họa, không ghi vào dữ liệu; đóng cửa sổ sẽ xóa. Không thay thế tọa độ thật đã lưu.
 
 Dữ liệu MARS không có tọa độ trường. Cửa sổ luôn mở bản đồ khuôn viên, với danh sách camera và video bên cạnh; chỉ hiện thẻ **Liên kết camera** khi có liên kết để đối chiếu. Đường minh họa luôn là nét đứt, không có mũi tên và không chứng minh hành trình thực tế.
+
+## Kết nối camera HLS / RTSP
+
+Vào **Thiết lập camera → Thêm camera**, chọn **HLS · xem trong web** để nhập URL HTTPS, kiểm tra hình rồi lưu. Luồng xuất hiện trong lưới camera và bảng video bản đồ. Giao diện chỉ báo đang phát khi nhận được hình, có báo lỗi và kết nối lại. HLS dạng video có điểm kết thúc không được gắn nhãn trực tiếp.
+
+**RTSP · qua gateway** lưu tên biến môi trường trên máy cùng mạng camera, không lưu URL/mật khẩu RTSP trên web. Có thể bổ sung HLS đầu ra từ bộ chuyển luồng để xem trong trình duyệt; gateway Python trong repo chỉ ghi clip, không phục vụ HLS. Xuất cấu hình 2–3 camera để thu clip và gửi AI; mật khẩu giữ ở máy gateway. Xem [hướng dẫn đầy đủ](CAMERA_CONNECTIONS.md).
+
+Xem luồng và phân tích AI là hai tác vụ riêng. HLS không cần GPU chỉ để phát; GPU phải chạy khi gửi clip phân tích. Chưa có kiểm chứng với camera vật lý tại trường.
 
 ## Lịch sử
 

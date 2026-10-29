@@ -7,6 +7,7 @@ import { DEMO_SAMPLES } from "@/lib/demo-samples";
 import type { WorkspaceAccess } from "@/lib/workspace-types";
 import { downloadJson, jsonApi, useWorkspace } from "./WorkspaceProvider";
 import { NeedWorkspace, ScreenTitle } from "./WorkspacePrimitives";
+import { gatewayConfig } from '@/lib/camera-connection';
 
 type FileRow = { file: File; cameraId: string; offset: string };
 type UploadJob = WorkspaceAccess & { uploads: { url: string; size: number }[] };
@@ -102,9 +103,8 @@ export function VideoScreen() {
         <p className="ct-caption">Chỉ phân tích 30 giây đầu, tối đa 10 frame/giây. Để trống mốc khi chưa đồng bộ; hệ thống không bịa thứ tự di chuyển.</p>
         <label className="ct-checkbox"><input type="checkbox" checked={consent} disabled={busy} onChange={event => setConsent(event.target.checked)} />Tôi có quyền sử dụng video và đồng ý gửi tới Storage/Kaggle.</label>
       </> : <div className="ct-form-stack"><h2>Kết nối qua bộ thu tại trường</h2><p>Gateway đọc camera trong mạng nội bộ, ghi đoạn ngắn rồi gửi vào cùng hàng đợi AI. Mật khẩu RTSP giữ trên máy thu.</p>
-        <p className="ct-muted">Hiện hỗ trợ phân tích đoạn ghi, chưa có xem live hoặc giám sát liên tục. Khi chưa có camera thật, dùng video mẫu ở tab bên cạnh.</p>
-        <button className="ct-button" onClick={() => downloadJson({ web_url: location.origin, seconds: 15, consent: false,
-          cameras: (app.data?.cameras.filter(camera => camera.source === 'rtsp').slice(0, 3).length ? app.data.cameras.filter(camera => camera.source === 'rtsp').slice(0, 3) : [{ name: 'Camera 1' }, { name: 'Camera 2' }]).map((camera, index) => ({ name: camera.name, rtsp_url_env: `CAMPUS_CAMERA_${index + 1}_RTSP` })) }, 'camera-gateway.json')}>Tải cấu hình gateway</button>
+        <p className="ct-muted">AI xử lý các clip đã gửi. Để xem nguồn camera trên web, thêm URL HLS trong <Link href="/workspace/cameras">Thiết lập camera</Link>. Khi chưa có thiết bị, dùng video mẫu.</p>
+        <button className="ct-button" onClick={() => { try { downloadJson(gatewayConfig(app.data?.cameras ?? [], location.origin), 'camera-gateway.json'); } catch (failure) { app.setError((failure as Error).message); } }}>Tải cấu hình gateway</button>
         <label>Mở phiên do gateway gửi<input type="file" accept=".json,application/json" disabled={!app.access || busy} onChange={event => { void restoreCapture(event.target.files?.[0]); event.currentTarget.value = ''; }} /></label></div>}
       {mode !== 'rtsp' ? <div className="ct-submit-row"><button className="ct-button ct-primary" disabled={busy || !app.access || app.online !== true || !!processing || mode === 'upload' && (!consent || rows.length < 2 || rows.length > 3)} onClick={() => void start()}><Play size={16} />{busy ? 'Đang gửi…' : 'Bắt đầu phân tích'}</button><span className="ct-muted" role="status">{progress || (processing ? 'Có phiên đang xử lý, hãy đợi hoàn thành.' : 'Chỉ gửi khi bạn bấm nút.')}</span></div> : null}
       {pending && app.access ? <div className="ct-message"><span>Quyền truy cập phiên vừa tạo vẫn được giữ để phục hồi.</span><button disabled={busy} onClick={() => { setBusy(true); void app.attach(pending, name.trim() || 'Phiên khôi phục').then(clearPending).catch(failure => app.setError(failure.message)).finally(() => setBusy(false)); }}>Mở lại phiên</button></div> : null}

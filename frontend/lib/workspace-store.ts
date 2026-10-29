@@ -2,6 +2,7 @@ import "server-only";
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { jobAuth, listStorageObjects, QueueError, read, removeStorageObjects, write, type Job } from "./demo-queue";
 import type { JobIndex, Review, SiteCamera, WorkspaceSnapshot } from "./workspace-types";
+import { cameraConnection } from './camera-connection';
 
 type Owner = { id: string; token_hash: string; name: string; created_at: number };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -91,13 +92,15 @@ export async function mutateWorkspace(request: Request, owner: Owner, raw: unkno
     const id = source.id ? identifier(source.id) : randomUUID();
     if (source.id && !await read<SiteCamera>(`${key(owner.id)}/cameras/${id}.json`)) throw new QueueError("Camera không còn tồn tại.", 404);
     const position = object(source.position);
-    if (!["gate", "walkway", "yard", "other"].includes(String(source.role)) || !["recorded", "rtsp"].includes(String(source.source)))
+    if (!["gate", "walkway", "yard", "other"].includes(String(source.role)) || !["recorded", "rtsp", "hls"].includes(String(source.source)))
       throw new QueueError("Loại camera không hợp lệ.");
     if (!source.id && (await records<SiteCamera>(`${key(owner.id)}/cameras`, 64)).length >= 32)
       throw new QueueError("Mỗi không gian nghiên cứu hỗ trợ tối đa 32 camera.", 409);
     const camera: SiteCamera = { id, name: string(source.name, 80, "Tên camera"), zone: string(source.zone, 80, "Khu vực", true),
       role: source.role as SiteCamera["role"], source: source.source as SiteCamera["source"],
       position: { x: number(position.x, 0, 1), y: number(position.y, 0, 1) }, updated_at: Date.now() };
+    try { camera.connection = cameraConnection(camera.source, source.connection); }
+    catch (failure) { throw new QueueError((failure as Error).message); }
     if (source.location !== undefined) {
       const location = object(source.location);
       camera.location = { lat: number(location.lat, -90, 90), lng: number(location.lng, -180, 180) };

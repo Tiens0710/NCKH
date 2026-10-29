@@ -1,7 +1,7 @@
 import type { Appearance } from './evidence';
 import type { DemoCamera } from './public-demo';
 export type MapLocation = { lat: number; lng: number };
-export type MapCamera = { id: string; name: string; src?: string; poster?: string; location?: MapLocation; analysis?: DemoCamera;
+export type MapCamera = { id: string; name: string; src?: string; poster?: string; stream?: boolean; pendingRtsp?: boolean; location?: MapLocation; analysis?: DemoCamera;
   observation?: Appearance & { relationship?: 'selected' | 'candidate' | 'confirmed' } };
 export type MapEdge = { from: string; to: string; confirmed?: boolean; directed?: boolean; illustrative?: boolean };
 export function validMapLocation(value?: MapLocation): value is MapLocation {

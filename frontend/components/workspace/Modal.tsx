@@ -10,7 +10,7 @@ export function Modal({ titleId, onClose, className = '', children }: {
     const previous = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
     const focusables = () => [...dialog.current!.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href],summary,[tabindex]:not([tabindex="-1"])')].filter(node => node.offsetParent !== null && node.tabIndex >= 0);
-    focusables()[0]?.focus();
+    (dialog.current?.querySelector<HTMLElement>('[data-initial-focus]') ?? focusables()[0])?.focus();
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close.current(); }
       if (event.key !== 'Tab') return;

@@ -1,0 +1,9 @@
+{
+  "web_url": "https://frontend-peach-zeta-37.vercel.app",
+  "seconds": 15,
+  "consent": false,
+  "cameras": [
+    { "name": "Cổng trường", "rtsp_url_env": "CAMPUS_GATE_RTSP" },
+    { "name": "Sân trường", "rtsp_url_env": "CAMPUS_YARD_RTSP" }
+  ]
+}
