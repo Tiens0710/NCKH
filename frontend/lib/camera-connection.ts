@@ -17,6 +17,12 @@ export function cameraConnection(source: SiteCamera['source'], raw: unknown): Si
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('Chưa cấu hình kết nối camera.');
   const input = raw as Record<string, unknown>;
   if (input.protocol !== source) throw new Error('Giao thức camera không khớp cấu hình.');
+  if (source === 'realtime') {
+    if (typeof input.realtime_token !== 'string' || !/^[A-Za-z0-9_-]{32,256}$/.test(input.realtime_token)) throw new Error('Nhập khóa đọc gateway AI (32–256 ký tự chữ, số, gạch dưới hoặc gạch ngang).');
+    const endpoint = hlsUrl(input.realtime_url);
+    if (!/\/cameras\/[A-Za-z0-9_-]{1,80}\/latest$/.test(new URL(endpoint).pathname)) throw new Error('URL AI cần kết thúc bằng /cameras/ID/latest.');
+    return { protocol: 'realtime', realtime_url: endpoint, realtime_token: input.realtime_token };
+  }
   if (source === 'hls') return { protocol: 'hls', stream_url: hlsUrl(input.stream_url) };
   if (typeof input.rtsp_env !== 'string' || !/^[A-Z][A-Z0-9_]{0,79}$/.test(input.rtsp_env))
     throw new Error('Tên biến RTSP gồm chữ in hoa, số và dấu gạch dưới; ví dụ CAMPUS_GATE_RTSP.');

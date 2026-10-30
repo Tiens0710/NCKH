@@ -92,7 +92,7 @@ export async function mutateWorkspace(request: Request, owner: Owner, raw: unkno
     const id = source.id ? identifier(source.id) : randomUUID();
     if (source.id && !await read<SiteCamera>(`${key(owner.id)}/cameras/${id}.json`)) throw new QueueError("Camera không còn tồn tại.", 404);
     const position = object(source.position);
-    if (!["gate", "walkway", "yard", "other"].includes(String(source.role)) || !["recorded", "rtsp", "hls"].includes(String(source.source)))
+    if (!["gate", "walkway", "yard", "other"].includes(String(source.role)) || !["recorded", "rtsp", "hls", "realtime"].includes(String(source.source)))
       throw new QueueError("Loại camera không hợp lệ.");
     if (!source.id && (await records<SiteCamera>(`${key(owner.id)}/cameras`, 64)).length >= 32)
       throw new QueueError("Mỗi không gian nghiên cứu hỗ trợ tối đa 32 camera.", 409);
@@ -128,7 +128,9 @@ export async function mutateWorkspace(request: Request, owner: Owner, raw: unkno
       const camera = await read<SiteCamera>(`${key(owner.id)}/cameras/${selected}.json`);
       if (!camera) throw new QueueError("Camera không thuộc không gian.");
       cameraIds[inputId] = selected;
-      cameraSnapshots[inputId] = camera;
+      const historical = { ...camera };
+      delete historical.connection;
+      cameraSnapshots[inputId] = historical;
     }
     if ((await records<JobIndex>(`${key(owner.id)}/jobs`, 200)).length >= 100 &&
         !await read<JobIndex>(`${key(owner.id)}/jobs/${id}.json`)) throw new QueueError("Đã đạt 100 phiên. Hãy xuất và xóa phiên không cần giữ.", 409);

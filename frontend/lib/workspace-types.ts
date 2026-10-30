@@ -3,8 +3,8 @@ import type { PublicDemoResult } from "./public-demo";
 export type WorkspaceAccess = { id: string; token: string };
 export type SiteCamera = {
   id: string; name: string; zone: string; role: "gate" | "walkway" | "yard" | "other";
-  source: "recorded" | "rtsp" | "hls"; location?: { lat: number; lng: number };
-  connection?: { protocol: "rtsp" | "hls"; stream_url?: string; rtsp_env?: string };
+  source: "recorded" | "rtsp" | "hls" | "realtime"; location?: { lat: number; lng: number };
+  connection?: { protocol: "rtsp" | "hls" | "realtime"; stream_url?: string; rtsp_env?: string; realtime_url?: string; realtime_token?: string };
   position: { x: number; y: number }; updated_at: number;
 };
 export type JobIndex = { id: string; name: string; created_at: number; camera_ids: Record<string, string>; camera_snapshots?: Record<string, SiteCamera> };

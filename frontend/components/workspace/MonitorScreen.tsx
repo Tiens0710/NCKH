@@ -13,8 +13,10 @@ import { CampusExplorer } from './CampusExplorer';
 import { searchPeople } from '@/lib/person-search';
 import { useWorkspace } from "./WorkspaceProvider";
 import { HlsStream } from './HlsStream';
+import { RealtimeCamera } from './RealtimeCamera';
+import type { RealtimeConnection } from '@/lib/realtime';
 
-type Feed = { id: string; name: string; src?: string; stream?: boolean; pendingRtsp?: boolean; poster?: string; location?: { lat: number; lng: number }; processed?: boolean; analysis?: DemoCamera };
+type Feed = { id: string; name: string; src?: string; stream?: boolean; realtime?: RealtimeConnection; pendingRtsp?: boolean; poster?: string; location?: { lat: number; lng: number }; processed?: boolean; analysis?: DemoCamera };
 
 export function MonitorScreen() {
   const app = useWorkspace();
@@ -26,7 +28,7 @@ export function MonitorScreen() {
   const [clipState, setClipState] = useState<{ source: string; cues: Record<string, EvidenceCue> }>({ source: '', cues: {} });
   const tiles = useRef<Record<string, HTMLElement | null>>({});
   const configured = app.data?.cameras ?? [];
-  const hasStreams = configured.some(camera => camera.connection?.stream_url);
+  const hasStreams = configured.some(camera => camera.connection?.stream_url || camera.connection?.realtime_url);
   const result = !hasStreams || showRecording ? app.job?.result : undefined;
   const sourceId = result ? app.job?.id ?? '' : 'configured';
   const rows = useMemo(() => result ? appearances(result) : [], [result]);
@@ -46,7 +48,7 @@ export function MonitorScreen() {
     const config = index?.camera_snapshots?.[camera.camera_id];
     return { id: camera.camera_id, name: config?.name ?? camera.name, src: camera.raw_media_path ?? camera.media_path,
       location: camera.location ?? config?.location, processed: !camera.raw_media_path, analysis: camera };
-  }) : configured.length ? configured.map(camera => ({ id: camera.id, name: camera.name, location: camera.location, src: camera.connection?.stream_url, stream: !!camera.connection?.stream_url, pendingRtsp: camera.source === 'rtsp' }))
+  }) : configured.length ? configured.map(camera => ({ id: camera.id, name: camera.name, location: camera.location, src: camera.connection?.stream_url, stream: !!camera.connection?.stream_url, pendingRtsp: camera.source === 'rtsp', realtime: camera.connection?.realtime_url ? { url: camera.connection.realtime_url, token: camera.connection.realtime_token! } : undefined }))
     : sample.cameras.map((camera, i) => ({ id: `sample-${i}`, name: `Camera ${i + 1}`, src: `/demo/samples/${camera.file}`, poster: `/demo/samples/${camera.file.replace(/\.mp4$/, '.jpg')}` }));
   const sampleMode = !!(result && app.replay) || (!result && !configured.length);
   function selectPerson(row: Appearance) {
@@ -84,12 +86,12 @@ export function MonitorScreen() {
         <div className="ct-camera-wall">{feeds.map(camera => {
           const observation = journey?.rows.find(row => row.camera.camera_id === camera.id);
           return <article key={camera.id} ref={element => { tiles.current[camera.id] = element; }} tabIndex={-1} className={`ct-camera-tile${selectedId === camera.id ? ' is-selected' : ''}`} aria-label={camera.name}>
-            <div className="ct-feed-heading"><h3>{camera.name}</h3><span>{observation?.relationship === 'candidate' ? 'AI gợi ý' : camera.stream ? 'HLS' : camera.pendingRtsp ? 'RTSP · cần gateway' : camera.src ? camera.processed ? 'Đã xử lý' : 'Ghi sẵn' : 'Chưa có video'}</span>{camera.src ? <button aria-label={`Phóng to ${camera.name}`} title={`Phóng to ${camera.name}`} onClick={event => { void event.currentTarget.closest('article')?.requestFullscreen().catch(() => app.setError('Không mở được toàn màn hình. Dùng nút toàn màn hình trong video để thử lại.')); }}><Maximize2 size={15} /></button> : null}</div>
-            {camera.src ? camera.stream ? <HlsStream key={camera.src} src={camera.src} name={camera.name} /> : <CameraVideo key={camera.src} src={camera.src} poster={camera.poster} name={camera.name} analysis={camera.analysis} trackIds={journey?.rows.filter(row => row.camera.camera_id === camera.id).map(row => row.track.local_track_id) ?? []} showTrail={showTrail} cue={cues[camera.id]} /> : <div className="ct-monitor-empty"><Video size={24} /><p>{camera.pendingRtsp ? 'Chờ gateway cung cấp luồng HLS' : 'Chưa có video'}</p><Link className="ct-button" href={camera.pendingRtsp ? '/workspace/cameras' : '/workspace/videos'}>{camera.pendingRtsp ? 'Cấu hình kết nối' : 'Thêm video'}</Link></div>}
+            <div className="ct-feed-heading"><h3>{camera.name}</h3><span>{observation?.relationship === 'candidate' ? 'AI gợi ý' : camera.realtime ? 'AI tự động' : camera.stream ? 'HLS · chỉ xem hình' : camera.pendingRtsp ? 'RTSP · cần gateway' : camera.src ? camera.processed ? 'Đã xử lý' : 'Ghi sẵn' : 'Chưa có video'}</span>{camera.src || camera.realtime ? <button aria-label={`Phóng to ${camera.name}`} title={`Phóng to ${camera.name}`} onClick={event => { void event.currentTarget.closest('article')?.requestFullscreen().catch(() => app.setError('Không mở được toàn màn hình. Dùng nút toàn màn hình trong video để thử lại.')); }}><Maximize2 size={15} /></button> : null}</div>
+            {camera.realtime ? <RealtimeCamera key={camera.realtime.url} connection={camera.realtime} name={camera.name} /> : camera.src ? camera.stream ? <HlsStream key={camera.src} src={camera.src} name={camera.name} /> : <CameraVideo key={camera.src} src={camera.src} poster={camera.poster} name={camera.name} analysis={camera.analysis} trackIds={journey?.rows.filter(row => row.camera.camera_id === camera.id).map(row => row.track.local_track_id) ?? []} showTrail={showTrail} cue={cues[camera.id]} /> : <div className="ct-monitor-empty"><Video size={24} /><p>{camera.pendingRtsp ? 'Chờ gateway cung cấp luồng HLS' : 'Chưa có video'}</p><Link className="ct-button" href={camera.pendingRtsp ? '/workspace/cameras' : '/workspace/videos'}>{camera.pendingRtsp ? 'Cấu hình kết nối' : 'Thêm video'}</Link></div>}
             {observation ? <div className="ct-feed-evidence"><button onClick={() => openEvidence(observation)}><Play size={13} />{seconds(observation.first)}–{seconds(observation.last)} · Xem đoạn</button>{cues[camera.id] ? <button onClick={() => clearClip(camera.id)}>Toàn bộ</button> : null}</div> : null}
           </article>;
         })}{feeds.length % 2 === 1 ? reference ? <section className="ct-wall-reference" aria-label="Ảnh người đang đối chiếu"><div className="ct-reference-label">Người tham chiếu · L{reference.track.local_track_id}</div><div className="ct-reference-body"><TrackPortrait row={reference} /><div><h2>{reference.camera.name}</h2><p>Áo {reference.track.clothing_colors?.upper?.label ?? 'chưa rõ'}</p><p>Quần/váy {reference.track.clothing_colors?.lower?.label ?? 'chưa rõ'}</p><small>{journey?.rows.some(row => row.relationship === 'candidate') ? 'Có gợi ý liên camera, cần đối chiếu' : journey?.rows.some(row => row.relationship === 'confirmed') ? 'Có liên kết do người vận hành xác nhận' : 'Chưa xác nhận danh tính liên camera'}</small></div></div><button onClick={() => openEvidence(reference)}><Play size={14} />Xem bằng chứng gốc</button></section> : <Link className="ct-add-source" href="/workspace/videos"><Plus size={22} strokeWidth={1.4} /><strong>Thêm nguồn video</strong><span>Tải video hoặc cấu hình camera</span></Link> : null}</div>
-        <div className="ct-wall-footer"><span>{sampleMode ? 'Video mẫu · chưa kết nối camera tại trường' : result ? 'Phát lại video của phiên đã lưu' : hasStreams ? 'Xem nguồn HLS · AI chỉ phân tích các clip đã gửi' : 'Nguồn camera đã cấu hình'}</span><Link href="/workspace/history">Đổi phiên video</Link></div>
+        <div className="ct-wall-footer"><span>{sampleMode ? 'Video mẫu · chưa kết nối camera tại trường' : result ? 'Phát lại video của phiên đã lưu' : configured.some(camera => camera.connection?.realtime_url) ? 'AI tự động từ gateway · xem độ trễ ở từng camera' : hasStreams ? 'Chỉ xem HLS · cấu hình gateway AI để tự phát hiện' : 'Nguồn camera đã cấu hình'}</span><Link href="/workspace/history">Đổi phiên video</Link></div>
         {!result && !configured.length ? <details className="ct-source-credit"><summary>Nguồn & giấy phép video</summary><p>{sample.attribution ?? sample.source_name} <a href={sample.source_url} target="_blank" rel="noreferrer">Nguồn dữ liệu</a> · <a href={sample.license_url ?? sample.source_url} target="_blank" rel="noreferrer">{sample.license}</a></p><p>{sample.changes}</p></details> : null}
         {!result && app.job && app.job.status !== 'completed' ? <p className="ct-caption" role="status">{app.job.stage}</p> : null}
       </section>

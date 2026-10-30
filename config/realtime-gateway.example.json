@@ -1,0 +1,11 @@
+{
+  "consent": false,
+  "device": "auto",
+  "target_fps": 2,
+  "threshold": 0.4,
+  "origins": ["https://frontend-peach-zeta-37.vercel.app"],
+  "cameras": [
+    {"id": "gate", "rtsp_url_env": "CAMPUS_GATE_RTSP"},
+    {"id": "yard", "rtsp_url_env": "CAMPUS_YARD_RTSP"}
+  ]
+}
