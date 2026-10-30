@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { Camera, Maximize2, Play, Plus, Search, Settings2, Video } from "lucide-react";
+import { Camera, Maximize2, Play, Plus, Search, Settings2, Video, X } from "lucide-react";
 import { DEMO_SAMPLES } from "@/lib/demo-samples";
 import type { DemoCamera } from "@/lib/public-demo";
 import { appearances, cameraJourney, seconds, type Appearance } from "@/lib/evidence";
@@ -10,7 +10,8 @@ import { CameraVideo, type EvidenceCue } from './CameraVideo';
 import { TrackPortrait } from './TrackPortrait';
 import { EvaluationPanel } from './EvaluationPanel';
 import { CampusExplorer } from './CampusExplorer';
-import { searchPeople } from '@/lib/person-search';
+import { PeopleScreen } from './PeopleScreen';
+import { Modal } from './Modal';
 import { useWorkspace } from "./WorkspaceProvider";
 import { HlsStream } from './HlsStream';
 import { RealtimeCamera } from './RealtimeCamera';
@@ -22,8 +23,7 @@ export function MonitorScreen() {
   const app = useWorkspace();
   const [selectedId, setSelectedId] = useState('');
   const [showTrail, setShowTrail] = useState(true);
-  const [query, setQuery] = useState('');
-  const [activeQuery, setActiveQuery] = useState('');
+  const { searchOpen, setSearchOpen } = app;
   const [showRecording, setShowRecording] = useState(false);
   const [showSamples, setShowSamples] = useState(false);
   const [clipState, setClipState] = useState<{ source: string; cues: Record<string, EvidenceCue> }>({ source: '', cues: {} });
@@ -33,11 +33,7 @@ export function MonitorScreen() {
   const result = !showSamples && (!hasStreams || showRecording) ? app.job?.result : undefined;
   const sourceId = showSamples ? 'pdestre-campus-preview' : result ? app.job?.id ?? '' : 'configured';
   const rows = useMemo(() => result ? appearances(result) : [], [result]);
-  const candidates = useMemo(() => {
-    if (!result || !activeQuery.trim()) return rows;
-    const keys = new Set(searchPeople(result.tracks, activeQuery).map(item => item.track.track_key));
-    return rows.filter(row => keys.has(row.track.track_key));
-  }, [result, rows, activeQuery]);
+  const candidates = rows;
   const reference = candidates.find(row => row.track.track_key === app.selection?.trackKey) ?? candidates[0];
   const personKey = reference?.track.track_key ?? '';
   const cues = clipState.source === sourceId ? clipState.cues : {};
@@ -57,17 +53,13 @@ export function MonitorScreen() {
     setClipState({ source: sourceId, cues: {} });
     app.setSelection({ trackKey: row.track.track_key, cameraId: row.camera.camera_id, seconds: row.first, revision: (app.selection?.revision ?? 0) + 1 });
   }
-  function search(event: React.FormEvent) {
-    event.preventDefault(); setActiveQuery(query.trim()); setClipState({ source: sourceId, cues: {} });
-    if (result) { const found = new Set(searchPeople(result.tracks, query.trim()).map(item => item.track.track_key)); const first = rows.find(row => !query.trim() || found.has(row.track.track_key)); if (first) selectPerson(first); }
-  }
   function openEvidence(row: Appearance) {
     const duration = row.camera.duration_seconds;
     const start = Math.max(0, Math.min(row.first, Math.max(0, duration - .01)));
     const revision = (app.selection?.revision ?? 0) + 1;
     setSelectedId(row.camera.camera_id);
     setClipState(previous => ({ source: sourceId, cues: { ...(previous.source === sourceId ? previous.cues : {}), [row.camera.camera_id]: { seconds: start, until: Math.min(duration, Math.max(start + .25, row.last + 1 / Math.max(1, row.camera.fps))), revision } } }));
-    app.setSelection({ trackKey: personKey, cameraId: row.camera.camera_id, trackId: row.track.local_track_id, seconds: start, revision });
+    app.setSelection({ trackKey: row.track.track_key, cameraId: row.camera.camera_id, trackId: row.track.local_track_id, seconds: start, revision });
     tiles.current[row.camera.camera_id]?.scrollIntoView({ block: 'nearest' });
   }
   function clearClip(id: string) {
@@ -75,15 +67,11 @@ export function MonitorScreen() {
     const player = tiles.current[id]?.querySelector('video'); if (player) { player.currentTime = 0; void player.play().catch(() => {}); }
   }
   return <>
-    <div className="ct-monitor-heading"><div><p className="ct-location-line">Đại học Cần Thơ <span>/</span> Khu II</p><h1>Giám sát khuôn viên</h1></div><Link className="ct-advanced-search" href="/workspace/people">Bộ lọc theo camera & màu áo</Link></div>
-    <section className="ct-case-search" aria-label="Tìm người và chọn ảnh tham chiếu">
-      <form onSubmit={search}><label htmlFor="case-query"><Search size={17} /><span className="ct-sr-only">Đặc điểm người cần tìm</span><input id="case-query" value={query} maxLength={500} onChange={event => setQuery(event.target.value)} placeholder="Tìm người: ví dụ áo đen, quần xanh dương" /></label><button className="ct-button ct-primary" disabled={!result} type="submit">Tìm trong video</button>{activeQuery ? <button type="button" onClick={() => { setQuery(''); setActiveQuery(''); }}>Xóa lọc</button> : null}</form>
-      {!result ? <p className="ct-search-hint">Cần kết quả đã phân tích để tìm người. <button onClick={() => void app.showReplay().then(() => { setShowRecording(true); setShowSamples(false); }).catch(failure => app.setError(failure.message))}>Mở dữ liệu mẫu đã xử lý</button></p> : activeQuery ? <div className="ct-case-matches"><div className="ct-match-caption"><span>{candidates.length} đoạn theo dõi khớp “{activeQuery}”</span><small>Chọn ảnh để đối chiếu; cùng màu áo chưa có nghĩa là cùng người.</small></div>
-        {candidates.length ? <div className="ct-case-candidates">{candidates.slice(0, 6).map(row => <button key={row.track.track_key} className="ct-candidate" aria-pressed={row.track.track_key === personKey} onClick={() => selectPerson(row)}><TrackPortrait row={row} /><span><strong>{row.camera.name} · L{row.track.local_track_id}</strong><small>{seconds(row.first)}–{seconds(row.last)}</small><span>Áo {row.track.clothing_colors?.upper?.label ?? 'chưa rõ'}</span></span></button>)}</div> : <p className="ct-no-match" role="status">Không có người khớp trong phiên này. Hãy đổi đặc điểm hoặc bỏ bớt điều kiện.</p>}{candidates.length > 6 ? <Link href="/workspace/people">Mở bộ lọc để xem tất cả kết quả</Link> : null}</div> : null}
-    </section>
+    <div className="ct-monitor-heading"><div><p className="ct-location-line">Đại học Cần Thơ <span>/</span> Khu II</p><h1>Giám sát khuôn viên</h1></div><div className="ct-monitor-actions"><Link href="/workspace/history">Lịch sử</Link><button className="ct-button ct-primary" aria-haspopup="dialog" aria-expanded={searchOpen} onClick={() => setSearchOpen(true)}><Search size={17} />Tìm người</button></div></div>
+    {searchOpen ? <Modal titleId="person-search-title" className="ct-search-drawer" onClose={() => setSearchOpen(false)}><div className="ct-drawer-head"><div><p>Tra cứu trong video</p><h2 id="person-search-title">Tìm người</h2></div><button aria-label="Đóng tìm người" onClick={() => setSearchOpen(false)}><X size={20} /></button></div><p className="ct-drawer-intro">Mô tả trang phục, lọc camera rồi chọn ảnh để mở đúng đoạn xuất hiện.</p><PeopleScreen embedded resultOverride={result ?? null} onLoadSample={async () => { await app.showReplay(); setShowRecording(true); setShowSamples(false); }} onInspect={row => { openEvidence(row); setSearchOpen(false); requestAnimationFrame(() => tiles.current[row.camera.camera_id]?.focus({ preventScroll: true })); }} /></Modal> : null}
     <div className={`ct-monitor-layout${result ? ' ct-evidence-mode' : ''}`}>
       <section className="ct-monitor-feeds" aria-label="Xem camera">
-        <div className="ct-wall-head"><h2><Camera size={16} />Camera & bằng chứng</h2><span>{feeds.length} nguồn video</span><button type="button" onClick={() => { setShowSamples(!showSamples); setActiveQuery(''); setQuery(''); }}>{showSamples ? 'Về phiên đang mở' : 'Video mẫu P-DESTRE'}</button><span className="ct-wall-source">{sampleMode ? result && app.replay ? 'Mẫu MARS' : sample.short_label ?? sample.title : result ? 'Phiên đã lưu' : 'Camera đã cấu hình'}</span>{hasStreams && app.job?.result ? <button onClick={() => { setShowRecording(!showRecording); setShowSamples(false); }}>{showRecording ? 'Xem camera kết nối' : 'Xem kết quả đã lưu'}</button> : null}</div>
+        <div className="ct-wall-head"><h2><Camera size={16} />Camera & bằng chứng</h2><span>{feeds.length} nguồn video</span><button type="button" onClick={() => { setShowSamples(!showSamples); }}>{showSamples ? 'Về phiên đang mở' : 'Video mẫu P-DESTRE'}</button><span className="ct-wall-source">{sampleMode ? result && app.replay ? 'Mẫu MARS' : sample.short_label ?? sample.title : result ? 'Phiên đã lưu' : 'Camera đã cấu hình'}</span>{hasStreams && app.job?.result ? <button onClick={() => { setShowRecording(!showRecording); setShowSamples(false); }}>{showRecording ? 'Xem camera kết nối' : 'Xem kết quả đã lưu'}</button> : null}</div>
         <div className="ct-camera-wall">{feeds.map(camera => {
           const observation = journey?.rows.find(row => row.camera.camera_id === camera.id);
           return <article key={camera.id} ref={element => { tiles.current[camera.id] = element; }} tabIndex={-1} className={`ct-camera-tile${selectedId === camera.id ? ' is-selected' : ''}`} aria-label={camera.name}>
@@ -104,12 +92,12 @@ export function MonitorScreen() {
         </section>
         <section className="ct-monitor-route"><div className="ct-section-head"><h2>Lần xuất hiện & đối chiếu</h2>{result ? <Link href="/workspace/journey">Ghi nhận xác nhận</Link> : null}</div>
           {result && journey ? <>
-            <div className="ct-route-toolbar">{!activeQuery ? <label>Người đang theo dõi<select value={personKey} onChange={event => { const row = candidates.find(row => row.track.track_key === event.target.value); if (row) selectPerson(row); }}>{candidates.map(row => <option key={row.track.track_key} value={row.track.track_key}>{row.camera.name} · L{row.track.local_track_id}</option>)}</select></label> : null}<label className="ct-checkbox"><input type="checkbox" checked={showTrail} onChange={event => setShowTrail(event.target.checked)} />Hiện vệt di chuyển</label></div>
+            <div className="ct-route-toolbar">{<label>Người đang theo dõi<select value={personKey} onChange={event => { const row = candidates.find(row => row.track.track_key === event.target.value); if (row) selectPerson(row); }}>{candidates.map(row => <option key={row.track.track_key} value={row.track.track_key}>{row.camera.name} · L{row.track.local_track_id}</option>)}</select></label>}<label className="ct-checkbox"><input type="checkbox" checked={showTrail} onChange={event => setShowTrail(event.target.checked)} />Hiện vệt di chuyển</label></div>
             <ObservationList className="ct-observation-list">{journey.rows.map(row => <li key={row.track.track_key} data-relationship={row.relationship}><button className="ct-evidence-jump" onClick={() => openEvidence(row)} aria-label={`Xem bằng chứng ${row.camera.name} L${row.track.local_track_id}`}><TrackPortrait row={row} /><span><strong>{row.camera.name}</strong><span className="ct-observation-time">{seconds(row.first)}–{seconds(row.last)}</span><small>{row.relationship === 'candidate' ? 'AI gợi ý · chưa xác nhận' : row.relationship === 'confirmed' ? 'Đã xác nhận' : 'Người tham chiếu'}</small></span><Play size={14} /></button></li>)}</ObservationList>
             {!journey.synchronized ? <p className="ct-route-note">Chưa đồng bộ giờ giữa các camera; chưa suy ra thứ tự đi qua.</p> : null}
             {journey.edges.some(edge => !feeds.find(feed => feed.id === edge.from)?.location || !feeds.find(feed => feed.id === edge.to)?.location) ? <details open className="ct-route-diagram"><summary>Liên kết camera · chưa có tọa độ</summary>{journey.edges.map((edge, i) => <div className="ct-link-row" key={i}><span>{feeds.find(feed => feed.id === edge.from)?.name}</span><svg width="40" height="16" aria-hidden="true"><line x1="1" y1="8" x2="39" y2="8" stroke={edge.confirmed ? '#1d5fbf' : '#777'} strokeWidth="2" strokeDasharray={edge.confirmed ? undefined : '4 4'} /></svg><span>{feeds.find(feed => feed.id === edge.to)?.name}</span></div>)}</details> : null}
             <details className="ct-route-explainer"><summary>Cách đọc bằng chứng</summary><p>Nét đứt: AI gợi ý. Nét liền: đã xác nhận. Mũi tên chỉ hiện khi đã xác nhận và đồng bộ giờ. Đường nối camera không phải lối đi thực tế. Ảnh và thời gian được trích từ phát hiện thực trong video.</p></details>
-          </> : <div className="ct-route-empty"><p>{result ? 'Không có người khớp bộ lọc.' : 'Chưa có người được theo dõi.'}</p><span>{result ? 'Xóa lọc hoặc chọn đặc điểm khác.' : 'Phân tích video để xem vệt di chuyển và liên kết camera.'}</span>{!result ? <button className="ct-button" onClick={() => void app.showReplay().then(() => { setShowRecording(true); setShowSamples(false); }).catch(failure => app.setError(failure.message))}>Xem hành trình mẫu</button> : null}</div>}
+          </> : <div className="ct-route-empty"><p>{result ? 'Chưa chọn người để đối chiếu.' : 'Chưa có người được theo dõi.'}</p><span>{result ? 'Mở Tìm người và chọn một kết quả.' : 'Phân tích video để xem vệt di chuyển và liên kết camera.'}</span>{!result ? <button className="ct-button" onClick={() => void app.showReplay().then(() => { setShowRecording(true); setShowSamples(false); }).catch(failure => app.setError(failure.message))}>Xem hành trình mẫu</button> : null}</div>}
         </section>
       </aside>
     </div>

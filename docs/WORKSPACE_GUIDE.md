@@ -1,5 +1,13 @@
 # Sử dụng Campus Trace
 
+## Luồng giám sát nhanh
+
+- Mở `/workspace` để xem camera và bản đồ cùng lúc. Mặc định dùng ba cảnh P-DESTRE quay từ UAV trong khuôn viên đại học; đây là ba phiên độc lập, chưa đồng bộ và chưa có tọa độ tại Cần Thơ.
+- Bấm **Tìm người** ở góc phải hoặc thanh điều hướng. Bảng bên phải cho phép nhập đặc điểm, chọn camera, màu áo và màu quần/váy. Video phía sau vẫn phát; Escape đóng bảng và trả focus về nút đã mở.
+- Chọn ảnh bằng **Xem trong camera** để làm nổi bật đúng ô, phát đúng đoạn xuất hiện và cập nhật người tham chiếu trên phần đối chiếu/bản đồ. Ảnh được trích từ video của phiên đang xem.
+- Video chưa có kết quả AI hiện trạng thái rõ ràng. **Thử tìm trên kết quả mẫu MARS** chuyển sang dữ liệu MARS đã xử lý; không suy diễn đó là kết quả P-DESTRE và không tạo job GPU.
+- **Quản lý** chứa nguồn video, kết nối/vị trí camera và lịch sử/xuất dữ liệu. **Không gian & quyền truy cập** mở công cụ sao lưu/khôi phục. Hiện quyền truy cập theo khóa không gian, chưa có tài khoản phân vai quản trị/người xem.
+
 ## Bắt đầu
 
 1. Mở `/workspace`: tất cả video camera phát đồng thời trong lưới bên trái, bản đồ Khu II bên phải.
@@ -9,7 +17,7 @@
 2. Trong mục **Camera** hoặc **Video**, bấm **Bắt đầu**. Camera, lịch sử và ghi chú lưu ở Storage riêng tư
    trên máy chủ. Trình duyệt chỉ giữ khóa truy cập của không gian.
 3. Mở tên không gian ở góc trên → **Sao lưu quyền truy cập**. Trên điện thoại, mở
-   menu → **Không gian & sao lưu quyền truy cập**. File này là quyền đọc/sửa dữ liệu,
+   menu → **Không gian & quyền truy cập**. File này là quyền đọc/sửa dữ liệu,
    cần giữ riêng tư; mất file và xóa bộ nhớ trình duyệt sẽ không có cách tự phục hồi.
 
 Để xem trước khi có GPU, bấm **Mở kết quả mẫu**. Đây là dữ liệu MARS đã xử lý trước,
@@ -36,10 +44,10 @@ xem; muốn lưu quyết định cần một phiên riêng đã hoàn thành.
 
 ## Tìm người và đọc hành trình
 
-Trong **Xem camera**, khi phiên có kết quả theo dõi, chọn **Vẽ hành trình của** để
+Trong **Xem camera**, khi phiên có kết quả theo dõi, mở **Tìm người** và chọn ảnh hoặc chọn **Người đang theo dõi** để
 hiện vệt chân trong các video có liên kết. Vệt chỉ nối các điểm đáy khung bao đã quan sát
 trong 6 giây gần nhất; mất dấu thì ngắt, không kéo đường qua đoạn trống hoặc frame tương lai.
-Có thể tắt **Vệt di chuyển trong video**. Video chưa phân tích không có vệt; dùng
+Có thể tắt **Hiện vệt di chuyển**. Video chưa phân tích không có vệt; dùng
 **Xem hành trình mẫu** để thử bằng dữ liệu MARS đã lưu.
 
 Bản đồ tự vẽ đường nối khi các camera trong liên kết có tọa độ. Nét đứt là ứng viên AI;

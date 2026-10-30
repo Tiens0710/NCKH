@@ -10,6 +10,7 @@ type Selection = { trackKey: string; cameraId: string; seconds: number; revision
 type State = {
   access: WorkspaceAccess | null; data: WorkspaceSnapshot | null; jobId: string; job: JobView | null; notes: Review[];
   replay: boolean; loading: boolean; error: string; online: boolean | null; selection: Selection;
+  searchOpen: boolean; setSearchOpen: (value: boolean) => void;
   setSelection: (value: Selection) => void; setError: (message: string) => void;
   create: (name: string) => Promise<void>; restore: (value: WorkspaceAccess) => Promise<void>;
   refresh: () => Promise<void>; mutate: (body: unknown) => Promise<void>; selectJob: (id: string) => void;
@@ -50,6 +51,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [online, setOnline] = useState<boolean | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selection, setSelection] = useState<Selection>(null);
   const loadGeneration = useRef(0);
   const headers = useCallback(() => ({ Authorization: `Bearer ${access?.token ?? ""}`, "Content-Type": "application/json" }), [access]);
@@ -165,6 +167,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem(REPLAY_KEY, '1');
     setJob({ id: "sample-replay", status: "completed", stage: "Kết quả mẫu lưu sẵn", progress: 1, worker_online: online === true, created_at: 0, updated_at: 0, result });
   }
-  return <Context.Provider value={{ access, data, jobId, job, notes, replay, loading, error, online, selection,
+  return <Context.Provider value={{ access, data, jobId, job, notes, replay, loading, error, online, selection, searchOpen, setSearchOpen,
     setSelection, setError, create, restore, refresh, mutate, selectJob, showReplay, refreshJob, jobAction, attach }}>{children}</Context.Provider>;
 }
