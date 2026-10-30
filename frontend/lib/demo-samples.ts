@@ -6,6 +6,7 @@ export type DemoSample = {
   source_name: string; source_url: string; license: string; simulation: boolean;
   duration_seconds: number; storage_prefix: string;
   research_only?: boolean;
+  short_label?: string; synchronized?: boolean;
   license_url?: string; attribution?: string; changes?: string;
   cameras: { name: string; file: string; size: number; timeline_start_seconds?: number }[];
 };

@@ -1,0 +1,7 @@
+S.V. Aruna Kumar, Ehsan Yaghoubi, Abhijit Das, B.S. Harish and Hugo Proenca. The P-DESTRE: A Fully Annotated Dataset for Pedestrian Detection, Tracking, Re-Identification and Search from Aerial Devices. IEEE TIFS, 2020. DOI:10.1109/TIFS.2020.3040881.
+
+Source: https://p-destre.di.ubi.pt/
+These adapted clips are licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International.
+https://creativecommons.org/licenses/by-nc-sa/4.0/
+
+Trích 15 giây từ mỗi video gốc, thu nhỏ 960px, H.264 tối đa 25 FPS, bỏ âm thanh; không vẽ bounding box. Ba phiên độc lập, chưa đồng bộ thời gian.

@@ -5,7 +5,7 @@ import type { JobView, Review, WorkspaceAccess, WorkspaceSnapshot } from "@/lib/
 import type { PublicDemoResult } from "@/lib/public-demo";
 
 const ACCESS_KEY = "campus-trace-workspace-v1";
-const REPLAY_KEY = "campus-trace-replay-v1";
+const REPLAY_KEY = "campus-trace-replay-v2";
 type Selection = { trackKey: string; cameraId: string; seconds: number; revision: number; trackId?: number } | null;
 type State = {
   access: WorkspaceAccess | null; data: WorkspaceSnapshot | null; jobId: string; job: JobView | null; notes: Review[];

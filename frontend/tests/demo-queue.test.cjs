@@ -201,7 +201,7 @@ test('private EPFL samples stay excluded from the public catalog', async () => {
 
 test('CC licensed real-camera sample preserves synchronization and attribution', async () => {
   const { queue, objects } = fixture();
-  const sample = JSON.parse(fs.readFileSync('lib/demo-open-datasets.generated.json','utf8')).find(item=>!item.simulation);
+  const sample = JSON.parse(fs.readFileSync('lib/demo-open-datasets.generated.json','utf8')).find(item=>item.id==='icsens-0004');
   await queue.workerAction({ action: 'heartbeat' });
   sample.cameras.forEach(camera=>objects.set(`samples/${camera.file}`,{metadata:{size:camera.size}}));
   const created = await queue.createSampleJob(guest(''),sample.id);
@@ -211,4 +211,16 @@ test('CC licensed real-camera sample preserves synchronization and attribution',
   assert.equal(claim.inputs.every(input=>input.timeline_start_seconds===0),true);
   assert.equal(claim.source.license_url,'https://creativecommons.org/licenses/by-nc/3.0/');
   assert.match(claim.source.attribution,/Uyen Nguyen/);
+});
+
+test('P-DESTRE campus clips are default raw inputs and independent sessions never acquire synchronized timestamps', async () => {
+ const {queue,objects}=fixture();const sample=JSON.parse(fs.readFileSync('lib/demo-open-datasets.generated.json','utf8'))[0];
+ assert.equal(sample.id,'pdestre-campus');assert.equal(sample.synchronized,false);assert.equal(sample.cameras.length,3);
+ assert.equal(sample.license_url,'https://creativecommons.org/licenses/by-nc-sa/4.0/');
+ await queue.workerAction({action:'heartbeat'});
+ sample.cameras.forEach(camera=>{assert.equal(fs.statSync('public/demo/samples/'+camera.file).size,camera.size);objects.set('samples/'+camera.file,{metadata:{size:camera.size}});});
+ const created=await queue.createSampleJob(guest(''),sample.id);
+ const job=await queue.jobAuth(guest(created.token),created.id);
+ assert.equal(job.inputs.every(input=>input.timeline_known===false),true);
+ assert.equal((await queue.view(job)).result,null);
 });

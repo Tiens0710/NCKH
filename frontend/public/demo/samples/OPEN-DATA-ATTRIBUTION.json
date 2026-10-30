@@ -1,6 +1,51 @@
 {
-  "purpose": "Non-commercial research demonstration; not biometric identification",
+  "purpose": "Non-commercial research demonstration; licenses apply per dataset",
   "datasets": [
+    {
+      "id": "pdestre-campus",
+      "title": "P-DESTRE · khuôn viên đại học",
+      "short_label": "P-DESTRE · khuôn viên",
+      "description": "Ba cảnh quay trong khuôn viên đại học từ thiết bị bay. Các cảnh khác phiên, không phải ba camera đồng bộ.",
+      "challenge": "Góc cao UAV · người đi bộ · che khuất · nhiều người",
+      "source_name": "SOCIA Lab. / University of Beira Interior & JSS Science and Technology University",
+      "source_url": "https://p-destre.di.ubi.pt/",
+      "license": "CC BY-NC-SA 4.0 · ghi nguồn, phi thương mại, chia sẻ tương tự",
+      "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+      "attribution": "S.V. Aruna Kumar, Ehsan Yaghoubi, Abhijit Das, B.S. Harish and Hugo Proenca. The P-DESTRE: A Fully Annotated Dataset for Pedestrian Detection, Tracking, Re-Identification and Search from Aerial Devices. IEEE TIFS, 2020. DOI:10.1109/TIFS.2020.3040881.",
+      "changes": "Trích 15 giây từ mỗi video gốc, thu nhỏ 960px, H.264 tối đa 25 FPS, bỏ âm thanh; không vẽ bounding box. Ba phiên độc lập, chưa đồng bộ thời gian.",
+      "simulation": false,
+      "synchronized": false,
+      "duration_seconds": 15,
+      "cameras": [
+        {
+          "name": "P-DESTRE · cảnh 1",
+          "file": "pdestre-campus/CAM-1.mp4",
+          "size": 2222242,
+          "source_file": "14-07-2019-1-1.MP4",
+          "source_start_seconds": 3,
+          "duration_seconds": 15.0,
+          "fps": 25
+        },
+        {
+          "name": "P-DESTRE · cảnh 2",
+          "file": "pdestre-campus/CAM-2.mp4",
+          "size": 2213264,
+          "source_file": "10-07-2019-1-3.MP4",
+          "source_start_seconds": 2,
+          "duration_seconds": 15.0,
+          "fps": 25
+        },
+        {
+          "name": "P-DESTRE · cảnh 3",
+          "file": "pdestre-campus/CAM-3.mp4",
+          "size": 5343514,
+          "source_file": "12-11-2019-1-3.MP4",
+          "source_start_seconds": 10,
+          "duration_seconds": 15.0,
+          "fps": 25
+        }
+      ]
+    },
     {
       "id": "icsens-0004",
       "title": "i.c.sens MuVi · giao lộ 0004 · 3 camera thật",
