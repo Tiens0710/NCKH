@@ -1,0 +1,27 @@
+[
+  {
+    "title": "1. Mục tiêu và phạm vi",
+    "paragraphs": [
+      "Ứng dụng Campus Trace được xây dựng nhằm hỗ trợ quan sát nhiều nguồn camera, tra cứu người theo đặc điểm trang phục và đối chiếu các lần xuất hiện trong khuôn viên trường học. Giao diện lấy hoạt động giám sát làm trung tâm: khi truy cập, người dùng xem đồng thời lưới video và bản đồ Khu II, Đại học Cần Thơ. Chức năng tìm kiếm mở trong bảng bên cạnh, giúp hạn chế việc chuyển trang khi kiểm tra bằng chứng."
+    ]
+  },
+  {
+    "title": "2. Kiến trúc và tổ chức dữ liệu",
+    "paragraphs": [
+      "Hệ thống sử dụng Next.js và React cho giao diện và các API quản lý, triển khai trên Vercel. Supabase đảm nhiệm lưu trữ video, cấu hình camera, lịch sử phiên và kết quả xử lý. Worker Python trên Kaggle thực hiện xử lý AI khi phiên chạy được bật; RF-DETR Medium là mô hình phát hiện người được lựa chọn. Kết quả được tổ chức theo camera, khung hình, thời điểm và đoạn theo dõi, phục vụ truy xuất bằng chứng. Quyền truy cập hiện dựa trên khóa riêng của từng không gian làm việc, chưa phân vai tài khoản quản trị và người xem."
+    ]
+  },
+  {
+    "title": "3. Các chức năng đã triển khai",
+    "paragraphs": [
+      "Màn hình giám sát hiển thị nhiều video cùng lúc, hỗ trợ phóng to từng nguồn và mở bản đồ tương tác. Người dùng có thể khai báo nguồn camera, thiết lập kết nối và lưu vị trí trên bản đồ. Bộ tìm kiếm hỗ trợ mô tả màu áo, màu quần/váy, lựa chọn camera, khoảng thời gian trong video, điều kiện thay thế bằng “hoặc” và loại trừ trang phục. Hướng dịch chuyển trái, phải, lên, xuống được suy ra khi chuỗi quan sát có đủ dữ liệu; đây là hướng trên mặt phẳng ảnh, không phải hướng địa lý.",
+      "Mỗi kết quả gồm ảnh trích từ video, camera, thời gian quan sát và giải thích điều kiện khớp. Khi chọn kết quả, hệ thống mở đúng camera và đoạn xuất hiện; ảnh bằng chứng được cập nhật theo khoảng thời gian đã lọc. Người dùng có thể chọn ảnh tham chiếu từ kết quả hiện có, ẩn kết quả không phù hợp và lưu tối đa tám bộ điều kiện trong trình duyệt theo từng phiên. Phần hành trình phân biệt liên kết do AI gợi ý với liên kết đã xác nhận; chỉ thể hiện chiều liên camera khi có đủ điều kiện danh tính và đồng bộ thời gian. Lịch sử hỗ trợ xuất JSON và bảng lần xuất hiện CSV."
+    ]
+  },
+  {
+    "title": "4. Kiểm thử và hướng hoàn thiện",
+    "paragraphs": [
+      "Bản web đã vượt qua 57 bài kiểm thử tự động và được kiểm tra luồng tìm kiếm trên trình duyệt máy tính, điện thoại. Đây là kiểm thử chức năng phần mềm, không thay thế đánh giá độ chính xác mô hình. Video mặc định là ba đoạn P-DESTRE quay từ UAV trong khuôn viên đại học; các đoạn thuộc những phiên độc lập, chưa đồng bộ và không được gán giả vào vị trí camera tại Cần Thơ. Gateway phát hiện liên tục đã có mã nguồn nhưng chưa vận hành thường trực trên camera thực tế. Các bước tiếp theo gồm tích hợp tracking liên tục, hoàn thiện Re-ID, bổ sung thuộc tính như balô, mũ và hành vi, đồng thời kiểm chứng hệ thống trên dữ liệu camera thực của trường."
+    ]
+  }
+]

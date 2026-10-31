@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Camera, ChevronDown, Download, MapPinned, Menu, Search, Video, X, History, ScanLine, Settings2 } from "lucide-react";
+import { Camera, ChevronDown, Download, MapPinned, Menu, Search, Video, X, History, ScanLine, Settings2, FileText } from "lucide-react";
 import { VIEW_NAMES, type WorkspaceView } from "@/lib/workspace-types";
 import { downloadJson, useWorkspace } from "./WorkspaceProvider";
 import { Modal } from "./Modal";
@@ -45,7 +45,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
       return <Link key={view} href={href} aria-current={active ? "page" : undefined} onClick={() => { setMenu(false); app.setSearchOpen(view === "people"); }}><Icon size={16} strokeWidth={1.6} />{VIEW_NAMES[view]}</Link>;
     })}<Link href="/workspace/journey" aria-current={path === '/workspace/journey' ? 'page' : undefined} onClick={() => setMenu(false)}><MapPinned size={16} />Hành trình & đối chiếu</Link>
     <details className="ct-nav-tools" key={path} open={['/workspace/videos','/workspace/cameras','/workspace/history'].includes(path)}><summary><Settings2 size={16} />Quản lý<ChevronDown size={14} /></summary><div>{(['videos','cameras','history'] as WorkspaceView[]).map(view => { const Icon = icons[view]; return <Link key={view} href={`/workspace/${view}`} aria-current={path === `/workspace/${view}` ? 'page' : undefined} onClick={() => setMenu(false)}><Icon size={15} />{view === 'videos' ? 'Nguồn video & phân tích' : view === 'cameras' ? 'Kết nối & vị trí camera' : 'Lịch sử & xuất dữ liệu'}</Link>; })}</div></details>
-    <div className="ct-nav-tail"><button className="ct-nav-settings" onClick={() => { setMenu(false); setSettings(true); }}>Không gian & quyền truy cập</button><small>Khu II · Cần Thơ</small></div></div></nav>
+    <div className="ct-nav-tail"><Link href="/workspace/report" aria-current={path === '/workspace/report' ? 'page' : undefined} onClick={() => setMenu(false)}><FileText size={16} />Báo cáo hệ thống</Link><button className="ct-nav-settings" onClick={() => { setMenu(false); setSettings(true); }}>Không gian & quyền truy cập</button><small>Khu II · Cần Thơ</small></div></div></nav>
     <main id="main-content" className="ct-main">
       {app.error ? <div className="ct-message ct-error" role="alert"><span>{app.error}</span><button onClick={() => { app.setError(""); void app.refresh().catch(failure => app.setError(failure.message)); }}>Thử lại</button></div> : null}
       {app.replay && path !== '/workspace' ? <div className="ct-message ct-sample-notice"><span><strong>Kết quả mẫu MARS</strong> · Chưa có tọa độ trường.</span><Link href="/workspace/videos">Phân tích video mới</Link></div> : null}
