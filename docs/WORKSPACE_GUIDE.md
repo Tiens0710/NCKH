@@ -109,3 +109,16 @@ Web có luồng quản lý và đối chiếu nghiên cứu xuyên suốt. Khôn
 khóa 256 bit, chưa có tài khoản tổ chức/phân vai quản trị. GPU Kaggle phải đang chạy
 để tạo kết quả mới. ViT/DynaMix, FAISS, AFLink/GSI và bộ phân loại hành vi chưa được
 coi là đã triển khai; trạng thái được ghi rõ trong màn hình Nghiên cứu. Không thêm OSNet.
+
+## Tìm kiếm mở rộng
+
+- Mô tả nối bằng **hoặc** / **OR** là các lựa chọn thay thế; các đặc điểm trong mỗi lựa chọn phải cùng khớp. Các bộ lọc camera, áo, quần kết hợp đồng thời với mô tả.
+- Mở **Thời gian, hướng đi & loại trừ**. Mốc thời gian là giây tính từ đầu mỗi video; chỉ frame có phát hiện thực trong khoảng mới được tính. Ảnh trích và đoạn phát lại theo khoảng đã lọc, không dùng ảnh cũ ngoài khoảng.
+- Hướng trái/phải/lên/xuống được suy ra từ dịch chuyển khung bao trên mặt phẳng ảnh khi đủ quan sát liền mạch; không phải kết luận đi vào/ra trường, tốc độ thực hay hướng địa lý. Camera chuyển động cũng ảnh hưởng hướng này.
+- Khoảng quan sát tối thiểu là chênh lệch lần đầu/cuối trong khoảng, không đo đứng chờ hay thời gian hiện diện liên tục qua phần bị che khuất.
+- **Loại mô tả trang phục** chỉ áp dụng cho màu hiện có. Thiếu màu không đủ chứng minh một thuộc tính không có. Từ ngoài khả năng dữ liệu hiện tại được báo lỗi khi dùng để loại trừ.
+- **Ảnh tham chiếu** có thể chọn nhiều ảnh từ kết quả; chỉ dùng liên kết đối chiếu đã có và quyết định xác nhận/loại trừ hiện hữu. Chưa tải ảnh ngoài hoặc chạy Re-ID mới; ảnh giống nhau chưa xác nhận danh tính.
+- **Loại kết quả** ẩn một đoạn trong bộ lọc, có nút hiện lại; không xóa bằng chứng và không sửa quyết định danh tính.
+- **Vì sao khớp?** nêu điều kiện trúng. Điểm hiển thị là độ tin cậy detection, không phải xác suất cùng người.
+- **Truy vấn đã lưu** lưu tối đa 8 bộ điều kiện trong trình duyệt, riêng workspace và phiên video. Không lưu ảnh tham chiếu, không đồng bộ giữa thiết bị và chưa cảnh báo người mới xuất hiện.
+- Balô, mũ, tóc, giày, trao/nhận đồ, phương tiện và vùng/vạch vào-ra chưa có dữ liệu mô hình, không được tạo bộ lọc giả cho chúng.

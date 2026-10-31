@@ -7,7 +7,7 @@ const cache = new Map<string, string>();
 const queues = new Map<string, Promise<void>>();
 function crop(row: Appearance): Promise<string> {
   const src = row.camera.raw_media_path ?? row.camera.media_path;
-  const key = `${src}|${row.track.track_key}`;
+  const key = `${src}|${row.track.track_key}|${row.portraitTime}|${row.box.join(',')}`;
   if (cache.has(key)) return Promise.resolve(cache.get(key)!);
   let resolve!: (value: string) => void, reject!: (reason: Error) => void;
   const result = new Promise<string>((yes, no) => { resolve = yes; reject = no; });
@@ -42,13 +42,15 @@ function crop(row: Appearance): Promise<string> {
   return result;
 }
 export function TrackPortrait({ row }: { row: Appearance }) {
-  const [image, setImage] = useState('');
-  const [failed, setFailed] = useState(false);
+  const identity = `${row.camera.raw_media_path ?? row.camera.media_path}|${row.track.track_key}|${row.portraitTime}|${row.box.join(',')}`;
+  const [preview, setPreview] = useState({ key: '', image: '', failed: false });
+  const image = preview.key === identity ? preview.image : '';
+  const failed = preview.key === identity && preview.failed;
   useEffect(() => {
     let cancelled = false;
-    void crop(row).then(value => { if (!cancelled) setImage(value); }).catch(() => { if (!cancelled) setFailed(true); });
+    void crop(row).then(value => { if (!cancelled) setPreview({ key: identity, image: value, failed: false }); }).catch(() => { if (!cancelled) setPreview({ key: identity, image: '', failed: true }); });
     return () => { cancelled = true; };
-  }, [row]);
+  }, [row, identity]);
   // A canvas-generated thumbnail from the selected video's actual detection, never a stock portrait.
   return <div className="ct-portrait">{image ? <Image src={image} width={144} height={176} unoptimized alt={`Ảnh trích từ ${row.camera.name}, track L${row.track.local_track_id}`} /> : <span>{failed ? 'Mở video để xem' : 'Đang lấy ảnh…'}</span>}</div>;
 }
