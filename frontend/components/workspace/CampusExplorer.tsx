@@ -37,7 +37,7 @@ function CameraGraph({ cameras, edges, selectedId, selectedEdge, onCamera, onEdg
     {positions.map(camera => <button key={camera.id} className={`ct-graph-camera${camera.id === selectedId && !selectedEdge ? ' is-selected' : ''}`} style={{ left: `${camera.x / 8}%`, top: `${camera.y / height * 100}%` }} onClick={() => onCamera(camera.id)} aria-label={`Khám phá ${camera.name}`}>
       <Thumbnail camera={camera} /><span><strong>{camera.name}</strong><small>{camera.observation ? `${seconds(camera.observation.first)}–${seconds(camera.observation.last)}` : 'Mở nguồn video'}</small></span>
     </button>)}
-    <p className="ct-graph-disclosure">Sơ đồ phi địa lý · bấm camera hoặc đường nối để đối chiếu</p>
+    <p className="ct-graph-disclosure">Sơ đồ liên kết camera · bấm camera hoặc đường nối để đối chiếu</p>
   </div>;
 }
 function InspectorCamera({ camera, location, illustrative, onOpenGrid }: { camera: MapCamera; location?: MapLocation; illustrative: boolean; onOpenGrid: () => void }) {
@@ -46,9 +46,9 @@ function InspectorCamera({ camera, location, illustrative, onOpenGrid }: { camer
   const cue = useMemo(() => row ? { seconds: row.first, until: Math.min(row.camera.duration_seconds, Math.max(row.first + .25, row.last + 1 / Math.max(1, row.camera.fps))), revision } : undefined, [row, revision]);
   return <div className="ct-map-camera-card">
     <div className="ct-inspector-title"><Camera size={17} /><h3>{camera.name}</h3></div>
-    <p className="ct-map-source-tag">{illustrative ? 'Vị trí minh họa · chưa lưu' : camera.realtime ? 'Gateway AI tự động' : camera.stream ? 'Luồng HLS · kết nối trong trình duyệt' : camera.pendingRtsp ? 'RTSP · cần gateway cùng mạng camera' : location ? 'Vị trí đã khai báo' : 'Chưa gắn vị trí'}</p>
+    <p className="ct-map-source-tag">{illustrative ? 'Vị trí minh họa · chưa lưu' : camera.realtime ? 'Gateway AI tự động' : camera.stream ? 'Luồng HLS · kết nối trong trình duyệt' : camera.pendingRtsp ? 'RTSP · chờ bộ kết nối cùng mạng camera' : location ? 'Vị trí đã khai báo' : 'Chưa gắn vị trí'}</p>
     {camera.realtime ? <RealtimeCamera connection={camera.realtime} name={camera.name} /> : camera.src ? camera.stream ? <HlsStream key={camera.src} src={camera.src} name={camera.name} /> : <CameraVideo src={camera.src} poster={camera.poster} name={camera.name} analysis={camera.analysis} trackIds={row ? [row.track.local_track_id] : []} showTrail={!!row} cue={cue} /> : <p className="ct-map-empty-source">{camera.pendingRtsp ? 'Thêm luồng HLS từ gateway để xem camera tại đây.' : 'Camera này chưa có video.'} <Link href={camera.pendingRtsp ? '/workspace/cameras' : '/workspace/videos'}>{camera.pendingRtsp ? 'Cấu hình kết nối' : 'Thêm nguồn video'}</Link></p>}
-    {row ? <><div className="ct-map-person"><TrackPortrait row={row} /><div><strong>L{row.track.local_track_id} · {seconds(row.first)}–{seconds(row.last)}</strong><span>Áo {row.track.clothing_colors?.upper?.label ?? 'chưa rõ'}</span><span>{row.relationship === 'candidate' ? 'AI gợi ý · cần đối chiếu' : row.relationship === 'confirmed' ? 'Người vận hành đã xác nhận' : 'Người tham chiếu'}</span></div></div>
+    {row ? <><div className="ct-map-person"><TrackPortrait row={row} /><div><strong>L{row.track.local_track_id} · {seconds(row.first)}–{seconds(row.last)}</strong><span>Áo {row.track.clothing_colors?.upper?.label ?? 'chưa rõ'}</span><span>{row.relationship === 'candidate' ? 'Đề xuất từ AI · cần đối chiếu' : row.relationship === 'confirmed' ? 'Người vận hành đã xác nhận' : 'Người tham chiếu'}</span></div></div>
       <button className="ct-button" onClick={() => setRevision(value => value + 1)}><RotateCcw size={14} />Phát lại đoạn xuất hiện</button></> : !camera.realtime ? <p className="ct-route-note">Chọn người từ kết quả phân tích để xem lần xuất hiện.</p> : null}
     {location ? <dl className="ct-map-coordinates"><div><dt>{illustrative ? 'Vĩ độ minh họa' : 'Vĩ độ'}</dt><dd>{location.lat.toFixed(6)}</dd></div><div><dt>{illustrative ? 'Kinh độ minh họa' : 'Kinh độ'}</dt><dd>{location.lng.toFixed(6)}</dd></div></dl> : null}
     <button className="ct-button ct-primary" onClick={onOpenGrid}><Play size={14} />Mở trên lưới camera</button>
@@ -77,7 +77,7 @@ function MapDialog({ cameras, edges, initialId, onClose, onOpenGrid }: { cameras
   }
   const pointPopup = (id: string) => {
     const camera = cameras.find(camera => camera.id === id), point = scene.points.find(point => point.id === id);
-    return <div className="ct-map-popup"><strong>{camera?.name}</strong><p>{point?.illustrative ? 'Minh họa · vị trí do bạn đặt' : 'Vị trí camera đã khai báo'}</p>{camera?.observation ? <p>L{camera.observation.track.local_track_id} · {seconds(camera.observation.first)}–{seconds(camera.observation.last)}</p> : null}<button onClick={() => choose(id)}>Mở thẻ camera & video</button></div>;
+    return <div className="ct-map-popup"><strong>{camera?.name}</strong><p>{point?.illustrative ? 'Minh họa · vị trí do bạn đặt' : 'Vị trí camera đã khai báo'}</p>{camera?.observation ? <p>L{camera.observation.track.local_track_id} · {seconds(camera.observation.first)}–{seconds(camera.observation.last)}</p> : null}<button onClick={() => choose(id)}>Xem camera và video</button></div>;
   };
   return <Modal className="ct-map-dialog" titleId="map-explorer-title" onClose={onClose}>
     <header className="ct-map-dialog-head"><div><h2 id="map-explorer-title" tabIndex={-1} data-initial-focus>Bản đồ camera</h2><p>Khu II · Đại học Cần Thơ</p></div><div className="ct-map-dialog-toolbar"><div className="ct-map-view-tabs" role="group" aria-label="Kiểu khám phá"><button aria-pressed={mode === 'campus'} onClick={() => { setMode('campus'); setInspectedPoint(undefined); }}><MapPin size={15} />Khuôn viên</button>{edges.length > 0 ? <button aria-pressed={mode === 'links'} onClick={() => { setMode('links'); setPlacing(false); setInspectedPoint(undefined); }}><Link2 size={15} />Liên kết camera <span>{edges.length}</span></button> : null}</div><span>{recorded.recordedCount}/{cameras.length} camera có tọa độ đã lưu</span></div><button onClick={onClose} aria-label="Đóng bản đồ"><X size={20} /></button></header>
@@ -95,7 +95,7 @@ function MapDialog({ cameras, edges, initialId, onClose, onOpenGrid }: { cameras
       {mode === 'campus' && recorded.recordedCount < cameras.length ? <details className="ct-map-staging-control"><summary>Bố trí thử trên bản đồ</summary><button className="ct-button" aria-pressed={placing} onClick={() => { setPlacing(!placing); setInspectedPoint(undefined); setSelectedEdge(null); }}>{placing ? 'Dừng đặt minh họa' : 'Thử bố trí camera trên bản đồ'}</button><p>Chọn camera rồi bấm vị trí. Bố trí thử sẽ xóa khi đóng.</p><Link href="/workspace/cameras">Thiết lập vị trí camera thật</Link></details> : null}
       {notice ? <p className="ct-map-action-notice" role="status">{notice}</p> : null}
     </aside></div>
-    {mode === 'links' ? <footer className="ct-map-footer-note"><span>Nét đứt: AI gợi ý · Nét liền: đã xác nhận</span><span>Đường nối camera không phải quỹ đạo GPS.</span></footer> : null}
+    {mode === 'links' ? <footer className="ct-map-footer-note"><span>Nét đứt: Đề xuất từ AI · Nét liền: đã xác nhận</span><span>Đường nối camera không phải quỹ đạo GPS.</span></footer> : null}
   </Modal>;
 }
 export function CampusExplorer({ cameras, edges = [], selectedId = '', onOpenGrid }: { cameras: MapCamera[]; edges?: MapEdge[]; selectedId?: string; onOpenGrid: (id: string) => void }) {
@@ -104,8 +104,8 @@ export function CampusExplorer({ cameras, edges = [], selectedId = '', onOpenGri
   function explore(id = selectedId) { setInitialId(id); setOpen(true); }
   return <div className="ct-campus-explorer"><OperationalMap points={scene.points.map(point => ({ ...point, selected: point.id === selectedId }))} edges={scene.edges}
     pointContent={id => <div className="ct-map-popup"><strong>{cameras.find(camera => camera.id === id)?.name}</strong><p>Chọn để xem video và bằng chứng tại camera.</p><button onClick={() => explore(id)}>Khám phá camera này</button></div>}
-    edgeContent={index => <div className="ct-map-popup"><strong>Liên kết camera</strong><p>{scene.edges[index]?.confirmed ? 'Người vận hành đã xác nhận' : 'AI gợi ý · cần đối chiếu'}</p><button onClick={() => explore(scene.edges[index]?.from)}>Mở bản đồ điều tra</button></div>} />
-    <button className="ct-map-explore-button" onClick={() => explore()}><Expand size={15} /><span>Mở bản đồ điều tra</span></button>
+    edgeContent={index => <div className="ct-map-popup"><strong>Liên kết camera</strong><p>{scene.edges[index]?.confirmed ? 'Người vận hành đã xác nhận' : 'Đề xuất từ AI · cần đối chiếu'}</p><button onClick={() => explore(scene.edges[index]?.from)}>Mở rộng bản đồ</button></div>} />
+    <button className="ct-map-explore-button" onClick={() => explore()}><Expand size={15} /><span>Mở rộng bản đồ</span></button>
     {open ? <MapDialog cameras={cameras} edges={edges} initialId={initialId} onClose={() => setOpen(false)} onOpenGrid={onOpenGrid} /> : null}
   </div>;
 }

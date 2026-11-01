@@ -40,11 +40,11 @@ export function filterAppearances(rows: Appearance[], filters: SearchFilters): S
     if (!times.length || times.at(-1)!-times[0] < Number(filters.minSpan || 0)) return [];
     const direction=observedDirection(row,start,end);
     if (filters.direction && direction !== filters.direction) return [];
-    const reasons=[...(alternatives.length ? ['Khớp mô tả trang phục'] : []),...(filters.cameraId ? ['Đúng camera đã chọn'] : []),...(filters.upper ? ['Khớp màu áo'] : []),...(filters.lower ? ['Khớp màu quần/váy'] : []),...(filters.exclude.trim() ? ['Không khớp mô tả bị loại; màu trang phục có dữ liệu'] : []),...(filters.start !== '' || filters.end !== '' ? [`Có ${times.length} frame quan sát trong khoảng đã chọn`] : []),...(filters.minSpan ? [`Khoảng quan sát ít nhất ${filters.minSpan} giây; không phải thời gian đứng yên`] : []),...(filters.direction ? ['Hướng suy ra từ khung bao trong hình'] : [])];
+    const reasons=[...(alternatives.length ? ['Phù hợp với mô tả trang phục'] : []),...(filters.cameraId ? ['Đúng camera đã chọn'] : []),...(filters.upper ? ['Khớp màu áo'] : []),...(filters.lower ? ['Khớp màu quần/váy'] : []),...(filters.exclude.trim() ? ['Không trùng điều kiện loại trừ; đã có dữ liệu màu trang phục'] : []),...(filters.start !== '' || filters.end !== '' ? [`Có ${times.length} khung hình có phát hiện trong khoảng đã chọn`] : []),...(filters.minSpan ? [`Khoảng thời gian quan sát tối thiểu ${filters.minSpan} giây; không phải thời gian đứng yên`] : []),...(filters.direction ? ['Hướng dịch chuyển được suy ra từ khung bao trên hình ảnh'] : [])];
     const observed = new Set(times);
     const observations = row.camera.frames.filter(f => observed.has(f.time_seconds)).flatMap(f => f.detections.filter(d => d.local_track_id === row.track.local_track_id).map(d => ({ time: f.time_seconds, detection: d })));
     const best = observations.reduce((a,b) => b.detection.score > a.detection.score ? b : a);
     const matchedRow = { ...row, first: times[0], last: times.at(-1)!, portraitTime: best.time, box: best.detection.xyxy, score: best.detection.score };
-    return [{row: matchedRow,reasons:reasons.length ? reasons : ['Có phát hiện thực trong video'],direction,observedTimes:times}];
+    return [{row: matchedRow,reasons:reasons.length ? reasons : ['Có phát hiện được ghi nhận trong video'],direction,observedTimes:times}];
   });
 }

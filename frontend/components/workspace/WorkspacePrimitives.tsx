@@ -16,7 +16,7 @@ export function NeedWorkspace() {
   const app = useWorkspace();
   const [name, setName] = useState('Đại học Cần Thơ · Khu II');
   const [busy, setBusy] = useState(false);
-  return <section className="ct-onboarding"><div><FolderOpen size={20} /><h2>Lưu camera và video của bạn</h2><p>Camera, lịch sử và quyết định đối chiếu được lưu riêng trên máy chủ.</p></div>
+  return <section className="ct-onboarding"><div><FolderOpen size={20} /><h2>Khởi tạo không gian làm việc</h2><p>Camera, lịch sử và quyết định đối chiếu được lưu riêng trên máy chủ.</p></div>
     <form onSubmit={event => { event.preventDefault(); setBusy(true); void app.create(name).catch(failure => app.setError(failure.message)).finally(() => setBusy(false)); }}>
       <label className="ct-sr-only" htmlFor="new-workspace-name">Tên không gian</label><input id="new-workspace-name" required maxLength={80} value={name} onChange={event => setName(event.target.value)} disabled={busy} />
       <button className="ct-button ct-primary" disabled={busy || app.loading}>{busy || app.loading ? 'Đang mở…' : 'Bắt đầu'}</button>
@@ -24,6 +24,6 @@ export function NeedWorkspace() {
 }
 export function NoResult() {
   const app = useWorkspace(), router = useRouter();
-  return <EmptyState icon={Play} title={app.job && app.job.status !== 'completed' ? app.job.stage : 'Chưa mở kết quả'} text="Phân tích video mới hoặc mở kết quả mẫu đã xử lý trước để xem cách đối chiếu người và hành trình."
+  return <EmptyState icon={Play} title={app.job && app.job.status !== 'completed' ? app.job.stage : 'Chưa có kết quả phân tích'} text="Chọn video để phân tích hoặc mở dữ liệu minh họa để trải nghiệm chức năng đối chiếu và xem hành trình."
     action={<div className="ct-inline-actions"><Link className="ct-button ct-primary" href="/workspace/videos">Chọn video</Link><button className="ct-button" onClick={() => void app.showReplay().then(() => router.push('/workspace/people')).catch(failure => app.setError(failure.message))}>Xem kết quả mẫu</button></div>} />;
 }

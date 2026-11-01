@@ -34,7 +34,7 @@ export function RealtimeCamera({ connection, name }: { connection: RealtimeConne
         {frame.detections.map((detection, index) => <g key={index}><rect x={detection.xyxy[0]} y={detection.xyxy[1]} width={detection.xyxy[2]-detection.xyxy[0]} height={detection.xyxy[3]-detection.xyxy[1]} fill="none" stroke="#43dcad" strokeWidth="2" vectorEffect="non-scaling-stroke" /><text x={detection.xyxy[0]+3} y={Math.max(14,detection.xyxy[1]-5)} fill="#43dcad" stroke="#10221a" strokeWidth="2" paintOrder="stroke" fontSize="14">Người {Math.round(detection.score*100)}%</text></g>)}
       </svg>
     </div> : <div className="ct-realtime-wait" role="status">{state.error || (state.data?.model_status === 'loading_model' ? 'Đang nạp RF-DETR…' : state.data?.model_status === 'model_error' ? 'Gateway chưa nạp được mô hình.' : state.data?.status === 'stale' || state.data?.frame ? 'Dữ liệu AI đã cũ · chờ frame mới.' : 'Đang chờ gateway AI tự động phát hiện…')}</div>}
-    <div className="ct-stream-status" role="status"><span>{frame ? `${state.data?.simulation ? 'Mô phỏng video · ' : ''}AI đang chạy · ${frame.detections.length} người/frame` : 'AI chưa có dữ liệu mới'}</span>{frame ? <span>Trễ {(age/1000).toFixed(1)}s · {frame.inference_fps === null ? 'Đo FPS…' : `${frame.inference_fps.toFixed(1)} FPS`}</span> : null}</div>
-    <p className="ct-ai-caption">Tự cập nhật · khung bao cùng frame đã xử lý. Chưa xác định danh tính liên camera.</p>
+    <div className="ct-stream-status" role="status"><span>{frame ? `${state.data?.simulation ? 'Mô phỏng video · ' : ''}AI đang chạy · ${frame.detections.length} phát hiện/khung hình` : 'Chưa nhận được kết quả AI mới'}</span>{frame ? <span>Trễ {(age/1000).toFixed(1)}s · {frame.inference_fps === null ? 'Đang đo tốc độ…' : `${frame.inference_fps.toFixed(1)} FPS`}</span> : null}</div>
+    <p className="ct-ai-caption">Tự động cập nhật hình ảnh và khung bao tương ứng. Chưa xác nhận danh tính giữa các camera.</p>
   </div>;
 }
