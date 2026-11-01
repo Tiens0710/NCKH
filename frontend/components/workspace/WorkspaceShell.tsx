@@ -31,7 +31,7 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
     } catch (failure) { app.setError((failure as Error).message); }
     finally { setBusy(false); }
   }
-  return <div className="ct-app ct-operator">
+  return <div className="ct-app ct-operator ct-glass">
     <a className="ct-skip" href="#main-content">Đến nội dung chính</a>
     <header className="ct-header"><div className="ct-header-inner">
       <Link href="/workspace" className="ct-brand"><ScanLine size={24} strokeWidth={1.6} /><span>Campus Trace<small>Đại học Cần Thơ</small></span></Link>
