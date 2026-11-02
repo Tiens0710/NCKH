@@ -44,9 +44,9 @@ export async function write(path: string, value: unknown, overwrite = true) {
   }
   await checked(response); return true;
 }
-export async function listStorageObjects(prefix: string, limit = 100, offset = 0) {
+export async function listStorageObjects(prefix: string, limit = 100, offset = 0, order: "asc" | "desc" = "asc") {
   return checked(await storage(`/object/list/${BUCKET}`, { method: "POST", body: JSON.stringify({
-    prefix, limit, offset, sortBy: { column: "created_at", order: "asc" },
+    prefix, limit, offset, sortBy: { column: "created_at", order },
   }) })) as Promise<{ name: string; metadata?: { size: number } }[]>;
 }
 const list = (prefix: string) => listStorageObjects(prefix);

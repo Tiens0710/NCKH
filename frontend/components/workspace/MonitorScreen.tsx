@@ -10,6 +10,7 @@ import { CameraVideo, type EvidenceCue } from './CameraVideo';
 import { TrackPortrait } from './TrackPortrait';
 import { EvaluationPanel } from './EvaluationPanel';
 import { CampusExplorer } from './CampusExplorer';
+import { AnalyticsScreen } from './AnalyticsScreen';
 import { PeopleScreen } from './PeopleScreen';
 import { Modal } from './Modal';
 import { useWorkspace } from "./WorkspaceProvider";
@@ -17,10 +18,11 @@ import { HlsStream } from './HlsStream';
 import { RealtimeCamera } from './RealtimeCamera';
 import type { RealtimeConnection } from '@/lib/realtime';
 
-type Feed = { id: string; name: string; src?: string; stream?: boolean; realtime?: RealtimeConnection; pendingRtsp?: boolean; poster?: string; location?: { lat: number; lng: number }; processed?: boolean; analysis?: DemoCamera };
+type Feed = { zone?: string; id: string; name: string; src?: string; stream?: boolean; realtime?: RealtimeConnection; pendingRtsp?: boolean; poster?: string; location?: { lat: number; lng: number }; processed?: boolean; analysis?: DemoCamera };
 
 export function MonitorScreen() {
   const app = useWorkspace();
+  const [feedQuery,setFeedQuery]=useState(''),[feedType,setFeedType]=useState('all'),[feedZone,setFeedZone]=useState('');
   const [selectedId, setSelectedId] = useState('');
   const [showTrail, setShowTrail] = useState(true);
   const { searchOpen, setSearchOpen } = app;
@@ -41,12 +43,14 @@ export function MonitorScreen() {
   const ObservationList = journey?.synchronized ? 'ol' : 'ul';
   const index = app.data?.jobs.find(job => job.id === app.jobId);
   const sample = DEMO_SAMPLES[0];
-  const feeds: Feed[] = result ? result.cameras.map(camera => {
+  const allFeeds: Feed[] = result ? result.cameras.map(camera => {
     const config = index?.camera_snapshots?.[camera.camera_id];
-    return { id: camera.camera_id, name: config?.name ?? camera.name, src: camera.raw_media_path ?? camera.media_path,
+    return { id: camera.camera_id, name: config?.name ?? camera.name, zone: config?.zone, src: camera.raw_media_path ?? camera.media_path,
       location: camera.location ?? config?.location, processed: !camera.raw_media_path, analysis: camera };
-  }) : !showSamples && configured.length ? configured.map(camera => ({ id: camera.id, name: camera.name, location: camera.location, src: camera.connection?.stream_url, stream: !!camera.connection?.stream_url, pendingRtsp: camera.source === 'rtsp', realtime: camera.connection?.realtime_url ? { url: camera.connection.realtime_url, token: camera.connection.realtime_token! } : undefined }))
+  }) : !showSamples && configured.length ? configured.map(camera => ({ id: camera.id, name: camera.name, zone: camera.zone, location: camera.location, src: camera.connection?.stream_url, stream: !!camera.connection?.stream_url, pendingRtsp: camera.source === 'rtsp', realtime: camera.connection?.realtime_url ? { url: camera.connection.realtime_url, token: camera.connection.realtime_token! } : undefined }))
     : sample.cameras.map((camera, i) => ({ id: `sample-${i}`, name: camera.name, src: `/demo/samples/${camera.file}`, poster: `/demo/samples/${camera.file.replace(/\.mp4$/, '.jpg')}` }));
+  const feedZones=[...new Set(allFeeds.map(feed=>feed.zone).filter((value):value is string=>!!value))];
+  const feeds=allFeeds.filter(feed=>(!feedZone||feed.zone===feedZone)&&feed.name.toLocaleLowerCase('vi').includes(feedQuery.toLocaleLowerCase('vi'))&&(feedType==='all'||feedType==='live'&&!!(feed.stream||feed.realtime)||feedType==='recorded'&&!feed.stream&&!feed.realtime));
   const sampleMode = showSamples || !!(result && app.replay) || (!result && !configured.length);
   function selectPerson(row: Appearance) {
     if (clipState.source === sourceId) for (const id of Object.keys(clipState.cues)) { const player = tiles.current[id]?.querySelector('video'); if (player) { player.currentTime = 0; void player.play().catch(() => {}); } }
@@ -78,6 +82,8 @@ export function MonitorScreen() {
     <div className={`ct-monitor-layout${result ? ' ct-evidence-mode' : ''}`}>
       <section className="ct-monitor-feeds" aria-label="Xem camera">
         <div className="ct-wall-head"><h2><Camera size={16} />Camera và bằng chứng</h2><span>{feeds.length} nguồn video</span><button type="button" onClick={() => { setShowSamples(!showSamples); }}>{showSamples ? 'Quay lại phiên hiện tại' : 'Video mẫu P-DESTRE'}</button><span className="ct-wall-source">{sampleMode ? result && app.replay ? 'Mẫu MARS' : sample.short_label ?? sample.title : result ? 'Phiên đã lưu' : 'Camera đã cấu hình'}</span>{hasStreams && app.job?.result ? <button onClick={() => { setShowRecording(!showRecording); setShowSamples(false); }}>{showRecording ? 'Xem camera kết nối' : 'Xem kết quả đã lưu'}</button> : null}</div>
+        <div className="ct-feed-filters"><label>Tìm camera<input type="search" value={feedQuery} maxLength={100} onChange={e=>setFeedQuery(e.target.value)} placeholder="Tên camera"/></label><label>Nguồn<select value={feedType} onChange={e=>setFeedType(e.target.value)}><option value="all">Tất cả nguồn</option><option value="live">Luồng trực tiếp</option><option value="recorded">Video / nguồn chưa kết nối</option></select></label>{feedZones.length?<label>Khu vực<select value={feedZone} onChange={e=>setFeedZone(e.target.value)}><option value="">Tất cả khu vực</option>{feedZones.map(zone=><option key={zone}>{zone}</option>)}</select></label>:null}</div>
+        {!feeds.length?<div className="ct-ops-empty"><p>Không có nguồn phù hợp với bộ lọc.</p><button onClick={()=>{setFeedQuery('');setFeedType('all');setFeedZone('');}}>Hiển thị tất cả camera</button></div>:null}
         <div className="ct-camera-wall">{feeds.map(camera => {
           const observation = journey?.rows.find(row => row.camera.camera_id === camera.id);
           return <article key={camera.id} ref={element => { tiles.current[camera.id] = element; }} tabIndex={-1} className={`ct-camera-tile${selectedId === camera.id ? ' is-selected' : ''}`} aria-label={camera.name}>
@@ -107,6 +113,7 @@ export function MonitorScreen() {
         </section>
       </aside>
     </div>
+    <AnalyticsScreen compact />
     {result ? <EvaluationPanel key={sourceId} result={result} sourceId={sourceId} /> : null}
   </>;
 }

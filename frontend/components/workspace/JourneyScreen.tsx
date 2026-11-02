@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useMemo, useRef, useState } from "react";
 import { Download, Clock3, ArrowRight, Check, X, HelpCircle } from "lucide-react";
 import { appearances, directEvidence, seconds, type Appearance } from "@/lib/evidence";
 import { FocusVideo } from "@/components/PersonSearchResults";
@@ -14,6 +15,9 @@ const OperationalMap = dynamic(() => import('./OperationalMap'), { ssr: false, l
 const decisionLabels = { same: 'Xác nhận cùng người', different: 'Không cùng người', uncertain: 'Chưa đủ bằng chứng', entry: 'Đánh dấu vào', exit: 'Đánh dấu ra', presence: 'Có mặt' };
 export function JourneyScreen() {
   const app = useWorkspace(), result = app.job?.result;
+  const playerHost=useRef<HTMLDivElement>(null);
+  const [showPath,setShowPath]=useState(true),[showCameras,setShowCameras]=useState(true),[showDensity,setShowDensity]=useState(false),[showZones,setShowZones]=useState(false);
+  const [rate,setRate]=useState(1),[autoSequence,setAutoSequence]=useState(false),[playbackTime,setPlaybackTime]=useState(0),[playing,setPlaying]=useState(false);
   const [mapMode, setMapMode] = useState<'diagram' | 'geo'>('geo');
   const [otherKey, setOtherKey] = useState('');
   const [note, setNote] = useState('');
@@ -35,9 +39,9 @@ export function JourneyScreen() {
     const jobIndex = app.data?.jobs.find(job => job.id === app.jobId);
     const config = jobIndex?.camera_snapshots?.[camera.camera_id] ?? app.data?.cameras.find(item => item.id === jobIndex?.camera_ids[camera.camera_id]);
     return { id: camera.camera_id, name: camera.name, zone: config?.zone, x: config?.position.x ?? .12 + index * .76 / Math.max(1, result.cameras.length - 1),
-      y: config?.position.y ?? (index % 2 ? .3 : .65), selected: camera.camera_id === root?.camera.camera_id,
+      y: config?.position.y ?? (index % 2 ? .3 : .65), selected: camera.camera_id === focused?.camera.camera_id,
       count: result.tracks.filter(track => track.camera_id === camera.camera_id).length, location: camera.location ?? config?.location };
-  }) ?? [], [result, app.data, app.jobId, root?.camera]);
+  }) ?? [], [result, app.data, app.jobId, focused?.camera]);
   const edges: DiagramEdge[] = [];
   for (const row of evidence.rows) {
     if (!root || row.camera.camera_id === root.camera.camera_id || row.relationship === 'selected') continue;
@@ -68,13 +72,15 @@ export function JourneyScreen() {
     finally { setBusy(false); }
   }
   return <>
-    <ScreenTitle title="Hành trình và đối chiếu" description="Xem người ở đâu, lúc nào và bằng chứng nối các lần xuất hiện." action={result ? <button className="ct-button" onClick={() => downloadJson({ result, reviews: app.notes, selected_track: key, note: 'Camera links are evidence candidates; manual reviews are separately attributed.' }, 'campus-trace-evidence.json')}><Download size={16} />Xuất bằng chứng</button> : undefined} />
+    <ScreenTitle title="Hành trình và đối chiếu" description="Xem người ở đâu, lúc nào và bằng chứng nối các lần xuất hiện." action={result ? <div className="ct-inline-actions"><button onClick={()=>window.print()}>In hồ sơ / lưu PDF</button><Link className="ct-button" href="/workspace/incidents">Ghi nhận sự kiện</Link><button className="ct-button" onClick={() => downloadJson({ result, reviews: app.notes, selected_track: key, note: 'Camera links are evidence candidates; manual reviews are separately attributed.' }, 'campus-trace-evidence.json')}><Download size={16} />Xuất bằng chứng JSON</button></div> : undefined} />
     {!result || !root ? <NoResult /> : <>
       <section className="ct-subject-bar"><TrackPortrait row={root} /><div><h2>{root.camera.camera_id} · L{root.track.local_track_id}</h2><p>{root.camera.name} · {seconds(root.first)}–{seconds(root.last)}</p><span>Áo {root.track.clothing_colors?.upper?.label ?? 'chưa rõ'} / quần-váy {root.track.clothing_colors?.lower?.label ?? 'chưa rõ'}</span></div>
         <label>Đoạn theo dõi tham chiếu<select value={key} onChange={event => { const row = allRows.find(row => row.track.track_key === event.target.value); if (row) choose(row); }}>{allRows.map(row => <option key={row.track.track_key} value={row.track.track_key}>{row.camera.camera_id} · L{row.track.local_track_id}</option>)}</select></label>
         <div className="ct-subject-count"><strong>{evidence.rows.length}</strong><span>lần xuất hiện đang đối chiếu</span></div></section>
       <div className="ct-journey-workbench"><div className="ct-journey-layout"><section className="ct-panel ct-map-panel"><div className="ct-section-head"><h2>Khu II · Đại học Cần Thơ</h2><div className="ct-inline-actions"><button aria-pressed={mapMode === 'diagram'} onClick={() => setMapMode('diagram')}>Sơ đồ</button><button aria-pressed={mapMode === 'geo'} onClick={() => setMapMode('geo')}>Bản đồ</button></div></div>
-        {mapMode === 'geo' ? <OperationalMap points={points} edges={edges} onSelect={id => { const row = evidence.rows.find(row => row.camera.camera_id === id) ?? allRows.find(row => row.camera.camera_id === id); if (row) choose(row, evidence.rows.some(item => item.track.track_key === row.track.track_key)); }} /> : <SiteDiagram nodes={nodes} edges={edges} onSelect={id => { const row = evidence.rows.find(row => row.camera.camera_id === id) ?? allRows.find(row => row.camera.camera_id === id); if (row) choose(row, evidence.rows.some(item => item.track.track_key === row.track.track_key)); }} />}
+        <div className="ct-map-layer-controls" role="group" aria-label="Lớp dữ liệu bản đồ"><button aria-pressed={showPath} onClick={()=>setShowPath(!showPath)}>Liên kết hành trình</button><button aria-pressed={showCameras} onClick={()=>setShowCameras(!showCameras)}>Camera</button><button aria-pressed={showDensity} onClick={()=>setShowDensity(!showDensity)}>Mật độ theo camera</button><button aria-pressed={showZones} onClick={()=>setShowZones(!showZones)}>Vùng tham chiếu</button></div>
+        {mapMode === 'geo' ? <OperationalMap points={points} edges={showPath?edges:[]} showPoints={showCameras} zones={showZones?app.operations.zones:[]} density={showDensity?points.map(point=>({...point,count:result.cameras.find(c=>c.camera_id===point.id)?.frames.reduce((n,f)=>n+f.detections.length,0)??0})):[]} onSelect={id => { const row = evidence.rows.find(row => row.camera.camera_id === id) ?? allRows.find(row => row.camera.camera_id === id); if (row) choose(row, evidence.rows.some(item => item.track.track_key === row.track.track_key)); }} /> : <SiteDiagram nodes={showCameras?nodes:[]} edges={showPath?edges:[]} onSelect={id => { const row = evidence.rows.find(row => row.camera.camera_id === id) ?? allRows.find(row => row.camera.camera_id === id); if (row) choose(row, evidence.rows.some(item => item.track.track_key === row.track.track_key)); }} />}
+        {showDensity?<p className="ct-caption">Mật độ đếm khung bao tại vị trí camera, không phải tọa độ GPS hoặc số người riêng biệt.</p>:null}{showZones&&!app.operations.zones.length?<p className="ct-caption">Chưa có vùng đã lưu. Tạo vùng tại Cài đặt và nhật ký.</p>:null}
         <div className="ct-map-legend"><span><i className="candidate" />Liên kết AI ứng viên</span><span><i />Người vận hành xác nhận</span></div>
         <p className="ct-caption">{points.length ? `${points.length}/${nodes.length} camera có tọa độ. ` : 'Video này chưa có vị trí tại trường. '}Đường nối thể hiện liên kết camera, không phải lối đi thực tế.</p>
       </section><section className="ct-panel ct-timeline-panel"><div className="ct-section-head"><h2>Các lần xuất hiện</h2><Clock3 size={17} /></div>
@@ -83,7 +89,7 @@ export function JourneyScreen() {
         {!result.links.length ? <p className="ct-caption">AI chưa trả liên kết liên camera. Bạn vẫn có thể chọn cặp để đối chiếu bằng video.</p> : null}
       </section></div>
       <div className="ct-evidence-layout"><section className="ct-panel"><div className="ct-section-head"><h2>Video bằng chứng</h2><span>{focused?.camera.name}</span></div>
-        {focused ? <div className="ct-player"><FocusVideo key={`${app.job!.id}-${focused.camera.camera_id}`} camera={focused.camera} matches={focusedTracks} focus={viewerFocus} /></div> : null}
+        {focused ? <><div className="ct-replay-controls"><button onClick={()=>{const p=playerHost.current?.querySelector('video');if(p){if(p.paused)void p.play().catch(f=>app.setError(f.message));else p.pause();}}}>{playing?'Tạm dừng':'Phát'}</button><button onClick={()=>{const p=playerHost.current?.querySelector('video');if(p)p.currentTime=focused.first;}}>Phát lại đoạn</button>{[1,2,5].map(value=><button key={value} aria-pressed={rate===value} onClick={()=>setRate(value)}>{value}x</button>)}<span>{seconds(playbackTime)} / {seconds(focused.camera.duration_seconds)}</span><label className="ct-sr-only" htmlFor="journey-scrubber">Tua video bằng chứng</label><input id="journey-scrubber" type="range" min="0" max={focused.camera.duration_seconds} step="0.1" value={Math.min(playbackTime,focused.camera.duration_seconds)} onChange={e=>{const p=playerHost.current?.querySelector('video');if(p)p.currentTime=Number(e.target.value);}}/></div><label className="ct-checkbox"><input type="checkbox" disabled={!evidence.synchronized||confirmedRows.length<2} checked={autoSequence} onChange={e=>setAutoSequence(e.target.checked)}/>Tự chuyển các lần xuất hiện đã xác nhận</label>{!evidence.synchronized?<p className="ct-caption">Tự chuyển liên camera chỉ khả dụng khi danh tính được xác nhận và thời gian đã đồng bộ.</p>:null}<div className="ct-player" ref={playerHost} onPlayCapture={()=>setPlaying(true)} onPauseCapture={()=>setPlaying(false)} onTimeUpdateCapture={e=>{const p=e.target as HTMLVideoElement;setPlaybackTime(p.currentTime);if(autoSequence&&p.currentTime>=focused.last){p.pause();const current=confirmedRows.findIndex(r=>r.track.track_key===focused.track.track_key);const next=confirmedRows[current+1];if(next)choose(next,true);else setAutoSequence(false);}}}><FocusVideo key={`${app.job!.id}-${focused.camera.camera_id}`} camera={focused.camera} matches={focusedTracks} focus={viewerFocus} playbackRate={rate} autoPlay={autoSequence}/></div></> : null}
         <p className="ct-caption">{focused?.camera.raw_media_path ? 'Chỉ hiển thị khung bao của đoạn theo dõi được chọn.' : 'Khung bao đã được gắn vào video kết quả. Chưa hỗ trợ ẩn riêng từng đối tượng trong video này.'}</p>
       </section><details className="ct-panel ct-review-panel"><summary>Đối chiếu và ghi chú</summary><div className="ct-review-content">
         <label>Đoạn theo dõi tại camera khác<select value={other?.track.track_key ?? ''} onChange={event => setOtherKey(event.target.value)}><option value="">Chọn đoạn theo dõi để đối chiếu</option>{options.map(row => <option key={row.track.track_key} value={row.track.track_key}>{row.camera.name} · L{row.track.local_track_id}</option>)}</select></label>

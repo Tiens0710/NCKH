@@ -22,6 +22,6 @@ export type JobView = {
   message?: string; result: PublicDemoResult | null;
 };
 export const VIEW_NAMES = {
-  overview: "Giám sát camera", people: "Tìm người", journey: "Hành trình", videos: "Video", cameras: "Thiết lập camera", history: "Lịch sử",
+  overview: "Giám sát camera", people: "Tìm người", journey: "Hành trình", videos: "Video", cameras: "Thiết lập camera", history: "Lịch sử", subjects: "Hồ sơ đối tượng", analytics: "Báo cáo và phân tích", settings: "Cài đặt và nhật ký", incidents: "Sự kiện",
 } as const;
 export type WorkspaceView = keyof typeof VIEW_NAMES;

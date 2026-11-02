@@ -1,7 +1,8 @@
 "use client";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
-import { MapContainer, TileLayer, Tooltip, Polyline, Marker, Popup, useMap, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Tooltip, Polyline, Marker, Popup, Polygon, CircleMarker, useMap, useMapEvents } from "react-leaflet";
 import { DomEvent, divIcon, type LatLngTuple } from "leaflet";
+import type { CampusZone } from "@/lib/operations-types";
 import { CTU_CAMPUS } from "@/lib/ctu-campus";
 type Point = { id: string; name: string; lat: number; lng: number; selected?: boolean; illustrative?: boolean };
 type Edge = { from: string; to: string; confirmed?: boolean; directed?: boolean; illustrative?: boolean };
@@ -19,8 +20,8 @@ function Bounds({ points, onPlace, onExplore }: { points: Point[]; onPlace?: (la
   return <div ref={controls} className="ct-map-controls"><button type="button" onClick={event => { event.stopPropagation(); map.setView(CTU_CAMPUS.center, CTU_CAMPUS.zoom); }}>Về khuôn viên</button>
     {points.length ? <button type="button" onClick={event => { event.stopPropagation(); map.fitBounds(points.map(point => [point.lat, point.lng] as LatLngTuple), { maxZoom: 18, padding: [40, 40] }); }}>Xem camera</button> : null}</div>;
 }
-export default function OperationalMap({ points = [], edges = [], onSelect, onPlace, onExplore, inspectedPoint, pointContent, edgeContent, locationContent }: {
-  points?: Point[]; edges?: Edge[]; onSelect?: (id: string) => void; onPlace?: (lat: number, lng: number) => void;
+export default function OperationalMap({ zones = [], density = [], showPoints = true, points = [], edges = [], onSelect, onPlace, onExplore, inspectedPoint, pointContent, edgeContent, locationContent }: {
+  zones?: CampusZone[]; density?: {lat:number;lng:number;count:number;name:string}[]; showPoints?: boolean; points?: Point[]; edges?: Edge[]; onSelect?: (id: string) => void; onPlace?: (lat: number, lng: number) => void;
   onExplore?: (lat: number, lng: number) => void; inspectedPoint?: { lat: number; lng: number };
   pointContent?: (id: string) => ReactNode; edgeContent?: (index: number) => ReactNode; locationContent?: ReactNode;
 }) {
@@ -31,7 +32,9 @@ export default function OperationalMap({ points = [], edges = [], onSelect, onPl
     <Bounds points={points} onPlace={onPlace} onExplore={onExplore} />
     {edges.map((edge, index) => { const from = points.find(point => point.id === edge.from), to = points.find(point => point.id === edge.to); return from && to ? <Fragment key={index}><Polyline
       positions={[[from.lat, from.lng], [to.lat, to.lng]]} pathOptions={{ color: edge.illustrative ? '#1b6c80' : edge.confirmed ? '#1d5fbf' : '#777', weight: 4, dashArray: edge.illustrative || !edge.confirmed ? '6 7' : undefined, bubblingMouseEvents: false }}><Tooltip>{from.name}{edge.directed ? ' → ' : ' ↔ '}{to.name} · {edge.illustrative ? 'Bố trí minh họa' : edge.confirmed ? 'Đã xác nhận' : 'Đề xuất từ AI'}</Tooltip>{edgeContent ? <Popup>{edgeContent(index)}</Popup> : null}</Polyline>{edge.directed && edge.confirmed && !edge.illustrative ? <Direction from={from} to={to} /> : null}</Fragment> : null; })}
-    {points.map((point, index) => <Marker key={point.id} position={[point.lat, point.lng]} title={point.name} alt={point.name} bubblingMouseEvents={false}
+    {zones.map(zone => <Polygon key={zone.id} positions={zone.points} pathOptions={{color:"#167c69",weight:2,fillOpacity:.12}}><Tooltip>{zone.name} · vùng do người vận hành đặt</Tooltip></Polygon>)}
+    {density.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)&&p.count>0).map((p,i)=><CircleMarker key={i} center={[p.lat,p.lng]} radius={Math.min(48,10+Math.sqrt(p.count)*3)} pathOptions={{color:"#c96526",fillColor:"#e89736",fillOpacity:.3,weight:1}}><Tooltip>{p.name}: {p.count} lượt phát hiện tại camera; không phải vị trí GPS của người</Tooltip></CircleMarker>)}
+    {showPoints && points.map((point, index) => <Marker key={point.id} position={[point.lat, point.lng]} title={point.name} alt={point.name} bubblingMouseEvents={false}
       icon={divIcon({ className: `ct-camera-map-pin${point.selected ? ' is-selected' : ''}${point.illustrative ? ' is-illustrative' : ''}`, iconSize: [30, 36], iconAnchor: [15, 34], html: `<span><b>${index + 1}</b></span>` })}
       eventHandlers={{ click: event => { DomEvent.stopPropagation(event.originalEvent); if (!pointContent) onSelect?.(point.id); } }}><Tooltip>{point.name}{point.illustrative ? ' · minh họa' : ''}</Tooltip>{pointContent ? <Popup>{pointContent(point.id)}</Popup> : null}</Marker>)}
     {inspectedPoint && locationContent ? <Popup key={`${inspectedPoint.lat}:${inspectedPoint.lng}`} position={[inspectedPoint.lat, inspectedPoint.lng]}>{locationContent}</Popup> : null}

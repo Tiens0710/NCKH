@@ -6,6 +6,8 @@ import { useState } from "react";
 import { ArrowRight, Video, History, Download, Trash2, RefreshCw } from "lucide-react";
 import type { WorkspaceView } from "@/lib/workspace-types";
 import { appearances, exportEvidenceCsv } from "@/lib/evidence";
+import { AnalyticsScreen } from "./AnalyticsScreen";
+import { SubjectsScreen, SettingsScreen, IncidentsScreen } from "./OperationsScreens";
 import { MonitorScreen } from "./MonitorScreen";
 import { CameraScreen } from "./CameraScreen";
 import { VideoScreen } from "./VideoScreen";
@@ -15,6 +17,10 @@ import { downloadJson, useWorkspace } from "./WorkspaceProvider";
 import { EmptyState, NeedWorkspace, ScreenTitle } from "./WorkspacePrimitives";
 
 export function WorkspaceScreen({ view }: { view: WorkspaceView }) {
+  if (view === 'subjects') return <SubjectsScreen />;
+  if (view === 'analytics') return <AnalyticsScreen />;
+  if (view === 'settings') return <SettingsScreen />;
+  if (view === 'incidents') return <IncidentsScreen />;
   if (view === 'cameras') return <CameraScreen />;
   if (view === 'videos') return <VideoScreen />;
   if (view === 'people') return <PeopleScreen />;

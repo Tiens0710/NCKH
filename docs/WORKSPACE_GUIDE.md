@@ -122,3 +122,15 @@ coi là đã triển khai; trạng thái được ghi rõ trong màn hình Nghi�
 - **Vì sao khớp?** nêu điều kiện trúng. Điểm hiển thị là độ tin cậy detection, không phải xác suất cùng người.
 - **Truy vấn đã lưu** lưu tối đa 8 bộ điều kiện trong trình duyệt, riêng workspace và phiên video. Không lưu ảnh tham chiếu, không đồng bộ giữa thiết bị và chưa cảnh báo người mới xuất hiện.
 - Balô, mũ, tóc, giày, trao/nhận đồ, phương tiện và vùng/vạch vào-ra chưa có dữ liệu mô hình, không được tạo bộ lọc giả cho chúng.
+
+## Các màn hình bổ sung theo Stitch
+
+- **Giám sát camera:** tìm tên nguồn, lọc luồng trực tiếp/video và khu vực; biểu đồ khung bao được tạo từ kết quả đang mở, không thay thế lưu lượng 24 giờ.
+- **Thiết lập camera:** tìm tên/khu vực, lọc giao thức, chuyển lưới/bảng và mở chi tiết nguồn. Điều khiển PTZ chưa khả dụng khi chưa có gateway và thiết bị được xác minh.
+- **Tìm người:** thêm sắp xếp, ngưỡng tin cậy phát hiện, chế độ danh sách, xuất CSV. Trợ lý mô tả dùng Gemini qua API xác thực của phiên riêng; cần khóa Gemini trên máy chủ. Chỉ gửi văn bản mô tả, không gửi ảnh/video, và không tự bỏ yêu cầu thuộc tính chưa hỗ trợ.
+- **Lưu hồ sơ:** trong kết quả phiên riêng, chọn Lưu hồ sơ, nhập tên gợi nhớ và ghi chú. Hồ sơ được lưu trên máy chủ, có thể đánh dấu cần đối chiếu, sửa, lưu trữ hoặc khôi phục; tên do người vận hành nhập không phải danh tính được AI chứng nhận.
+- **Sự kiện:** chuông trên thanh đầu mở danh sách sự kiện nội bộ. Có ưu tiên, trạng thái mới/đang đối chiếu/hoàn tất và xuất JSON. Không gửi tin nhắn hoặc điều phối nhân sự.
+- **Hành trình:** bật/tắt lớp camera/liên kết/mật độ theo camera/vùng. Mật độ là số khung bao tại camera, không phải vị trí người trên mặt đất. Video hỗ trợ phát lại 1x/2x/5x và tua. Chuyển liên camera tự động chỉ khả dụng với liên kết đã xác nhận và thời gian đồng bộ.
+- **Báo cáo và phân tích:** chọn phiên/camera, xem bảng và biểu đồ từ các quan sát thực, xuất CSV/JSON hoặc in.
+- **Cài đặt và nhật ký:** đổi tên không gian, vẽ vùng từ ít nhất ba điểm, lưu hoặc ẩn vùng. Nhật ký lưu các thao tác mới trên máy chủ và ghi tác nhân theo khóa không gian; chưa có tài khoản phân vai.
+- Nút sáng/tối trên thanh đầu lưu lựa chọn giao diện trong trình duyệt. Quyền truy cập và dữ liệu nghiệp vụ vẫn được quản lý riêng theo không gian.

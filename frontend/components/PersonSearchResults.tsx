@@ -7,7 +7,7 @@ import { visibleDetections } from "@/lib/person-overlay";
 import { searchPeople } from "@/lib/person-search";
 import { PersonJourney, type JourneyFocus } from "./PersonJourney";
 
-export function FocusVideo({ camera, matches, focus }: { camera: DemoCamera; matches: DemoTrack[] | null; focus: JourneyFocus | null }) {
+export function FocusVideo({ camera, matches, focus, playbackRate = 1, autoPlay = false }: { camera: DemoCamera; matches: DemoTrack[] | null; focus: JourneyFocus | null; playbackRate?: number; autoPlay?: boolean }) {
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const wrapper = useRef<HTMLDivElement>(null);
@@ -20,11 +20,18 @@ export function FocusVideo({ camera, matches, focus }: { camera: DemoCamera; mat
     if (!focus || focus.cameraId !== camera.camera_id || !video.current) return;
     const player = video.current;
     player.pause();
-    const seek = () => { player.currentTime = focus.seconds; player.closest("article")?.scrollIntoView({ behavior: "smooth", block: "center" }); };
+    const seek = () => { player.currentTime = focus.seconds; if (focus.revision > 0) player.closest("article")?.scrollIntoView({ behavior: "smooth", block: "center" }); };
     if (player.readyState >= 1) seek();
     else player.addEventListener("loadedmetadata", seek, { once: true });
     return () => player.removeEventListener("loadedmetadata", seek);
   }, [focus, camera.camera_id]);
+  useEffect(() => { if (video.current) video.current.playbackRate = playbackRate; }, [playbackRate]);
+  useEffect(() => {
+    const player=video.current;if(!player||!autoPlay)return;
+    const start=()=>{player.playbackRate=playbackRate;void player.play().catch(()=>setFailure('Chọn Phát để bắt đầu phát lại.'));};
+    if(player.readyState>=1)start();else player.addEventListener('loadedmetadata',start,{once:true});
+    return ()=>player.removeEventListener('loadedmetadata',start);
+  },[autoPlay,playbackRate,focus?.revision]);
   useEffect(() => {
     const update = () => setFullscreen(document.fullscreenElement === wrapper.current);
     document.addEventListener("fullscreenchange", update);

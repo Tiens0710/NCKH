@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import type { JobView, Review, WorkspaceAccess, WorkspaceSnapshot } from "@/lib/workspace-types";
+import { EMPTY_OPERATIONS, type OperationsSnapshot } from "@/lib/operations-types";
 import type { PublicDemoResult } from "@/lib/public-demo";
 
 const ACCESS_KEY = "campus-trace-workspace-v1";
@@ -10,6 +11,7 @@ type Selection = { trackKey: string; cameraId: string; seconds: number; revision
 type State = {
   access: WorkspaceAccess | null; data: WorkspaceSnapshot | null; jobId: string; job: JobView | null; notes: Review[];
   replay: boolean; loading: boolean; error: string; online: boolean | null; selection: Selection;
+  operations: OperationsSnapshot; operationsLoading: boolean; refreshOperations: () => Promise<void>; operate: (body: unknown) => Promise<void>;
   searchOpen: boolean; setSearchOpen: (value: boolean) => void;
   setSelection: (value: Selection) => void; setError: (message: string) => void;
   create: (name: string) => Promise<void>; restore: (value: WorkspaceAccess) => Promise<void>;
@@ -42,6 +44,8 @@ async function replayResult() {
 }
 
 export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
+  const [opsState, setOpsState] = useState<{owner: string; data: OperationsSnapshot}>({owner:"",data:EMPTY_OPERATIONS});
+  const [operationsLoading,setOperationsLoading] = useState(false);
   const [access, setAccess] = useState<WorkspaceAccess | null>(null);
   const [data, setData] = useState<WorkspaceSnapshot | null>(null);
   const [jobId, setJobId] = useState("");
@@ -60,6 +64,25 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     const snapshot = await jsonApi<WorkspaceSnapshot>(`/api/workspaces/${access.id}`, { headers: headers() });
     setData(snapshot);
   }, [access, headers]);
+  const operations = access && opsState.owner === access.id ? opsState.data : EMPTY_OPERATIONS;
+  const refreshOperations = useCallback(async () => {
+    if (!access) return;
+    const data = await jsonApi<OperationsSnapshot>(`/api/workspaces/${access.id}/operations`, { headers: headers() });
+    setOpsState({owner:access.id,data});
+  },[access,headers]);
+  async function operate(body:unknown) {
+    if (!access) throw new Error('Tạo hoặc mở không gian làm việc trước khi lưu.');
+    const response = await jsonApi<{warning?:string}>(`/api/workspaces/${access.id}/operations`, {method:'POST',headers:headers(),body:JSON.stringify(body)});
+    await refreshOperations();
+    if(response.warning)setError(response.warning);
+  }
+  useEffect(() => {
+    if(!access)return;
+    let cancelled=false; const controller=new AbortController();
+    queueMicrotask(()=>{if(!cancelled)setOperationsLoading(true);});
+    void jsonApi<OperationsSnapshot>(`/api/workspaces/${access.id}/operations`,{headers:headers(),signal:controller.signal}).then(data=>{if(!cancelled)setOpsState({owner:access.id,data});}).catch(failure=>{if(!cancelled)setError(failure.message);}).finally(()=>{if(!cancelled)setOperationsLoading(false);});
+    return ()=>{cancelled=true;controller.abort();};
+  },[access,headers]);
   useEffect(() => {
     let cancelled = false;
     const controller = new AbortController();
@@ -134,7 +157,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   async function mutate(body: unknown) {
     if (!access) throw new Error("Tạo hoặc mở không gian riêng trước khi lưu dữ liệu.");
     await jsonApi(`/api/workspaces/${access.id}`, { method: "POST", headers: headers(), body: JSON.stringify(body) });
-    await refresh();
+    await Promise.all([refresh(), refreshOperations()]);
   }
   function selectJob(id: string) {
     if (id === jobId && !replay) return;
@@ -167,6 +190,6 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     sessionStorage.setItem(REPLAY_KEY, '1');
     setJob({ id: "sample-replay", status: "completed", stage: "Kết quả mẫu lưu sẵn", progress: 1, worker_online: online === true, created_at: 0, updated_at: 0, result });
   }
-  return <Context.Provider value={{ access, data, jobId, job, notes, replay, loading, error, online, selection, searchOpen, setSearchOpen,
+  return <Context.Provider value={{ access, data, jobId, job, notes, replay, loading, error, online, selection, searchOpen, setSearchOpen, operations, operationsLoading, refreshOperations, operate,
     setSelection, setError, create, restore, refresh, mutate, selectJob, showReplay, refreshJob, jobAction, attach }}>{children}</Context.Provider>;
 }
